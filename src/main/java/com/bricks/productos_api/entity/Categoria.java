@@ -5,16 +5,13 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Data
+@Getter @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class Categoria {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column (name = "id")
-    @JsonAlias("id")
-    private Long idCategoria;
+    private Long id;
 
-    @Column (name = "name", nullable = false, length = 50)
+    @Column (name = "nombre", nullable = false, length = 50)
     private String name;
 }

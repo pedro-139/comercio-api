@@ -1,46 +1,65 @@
 package com.bricks.productos_api.service.impl;
 
+
 import com.bricks.productos_api.entity.Categoria;
 import com.bricks.productos_api.entity.Producto;
 import com.bricks.productos_api.exception.ResourceNotFoundException;
-import com.bricks.productos_api.repository.CategoriaRepository;
 import com.bricks.productos_api.repository.ProductoRepository;
+import com.bricks.productos_api.service.CategoriaService;
 import com.bricks.productos_api.service.ProductoService;
-import lombok.SneakyThrows;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.lang.module.ResolutionException;
-import java.util.List;
-import java.util.Optional;
+import java.util.List;;
 
 @Service
 
 public class ProductoServiceImpl implements ProductoService {
     @Autowired
-    private ProductoRepository productoRepository; //No recomendado
+    private ProductoRepository productoRepository;
 
     @Autowired
-    private CategoriaRepository categoriaRepository;
+    private CategoriaService categoriaService;
 
 
     @Override
     public Producto registrarProducto(Long idCategoria, Producto producto){
-        Categoria categoria = categoriaRepository.findById(idCategoria)
-                .orElseThrow(() -> new ResourceNotFoundException("Categoria con ID " +idCategoria +" no encontrada"));
+
+        //Al momento de registrar un producto se valida si la categoria existe, si no existe
+        // se maneja la excepción.
+        Categoria categoria = categoriaService.buscarPorId(idCategoria);
 
         producto.setCategoria(categoria);
         return productoRepository.save(producto);
     }
 
+
+    // Devuelve un String con el filtro de busqueda.
+    private String determinarFiltroActivo(String name, Double price, Integer stock, Long idCategory) {
+        if (name != null) return "name";
+            else if (price != null) return "price";
+                else if (stock != null) return "stock";
+                    else if (idCategory != null) return "idCategoria";
+        return "ninguno";
+    }
+
+
     @Override
+    // Solo acepta un filtro a la vez.
     public List<Producto> listarProductos(
             String name,
-            double price,
-            int stock,
-            Long idCategory
+            Double price,
+            Integer stock,
+            Long categoryId
     ){
-        return  productoRepository.findAll();
+        String filtro = determinarFiltroActivo(name,price,stock, categoryId);
+        return switch(filtro){
+            case "name" -> productoRepository.findByName(name);
+            case "price" -> productoRepository.findByPrice(price);
+            case "stock" -> productoRepository.findByStock(stock);
+            case "idCategoria" -> productoRepository.findByCategoria_Id(categoryId);
+            default -> productoRepository.findAll();
+        };
     }
 
     @Override

@@ -34,7 +34,7 @@ public class Producto {
     private int stock;
 
 
-    @ManyToOne(fetch = FetchType.EAGER, optional = false) //Muchos productos pertenecen a una categoria y una categoria puede tener muchos productos.
-    @JoinColumn(name = "category_id", nullable = false, referencedColumnName = "id")
+    @ManyToOne //Muchos productos pertenecen a una categoria y una categoria puede tener muchos productos.
+    @JoinColumn(name = "categoria", nullable = false, referencedColumnName = "id")
     private Categoria categoria; // Deberia ser Long o una categoria?
 }

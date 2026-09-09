@@ -8,7 +8,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/products") //Segun el video se le antepone api por buena practica, /api/products
@@ -22,7 +21,7 @@ public class ProductoController {
      */
     @PostMapping
     public ResponseEntity<?> registrarProducto(@RequestBody Producto producto){ // @RequestBody toma el cuerpo de la petición HTTP y lo convierte en un objeto Producto.
-        Producto nuevoProducto = productoService.registrarProducto(producto.getCategoria().getIdCategoria(),producto);
+        Producto nuevoProducto = productoService.registrarProducto(producto.getCategoria().getId(),producto);
         return ResponseEntity.status(HttpStatus.CREATED).body(nuevoProducto);
     }
 
@@ -30,8 +29,8 @@ public class ProductoController {
 
     public ResponseEntity<List<Producto>> listarProductos(
             @RequestParam(required = false) String name,
-            @RequestParam(required = false) double price,
-            @RequestParam(required = false) int stock,
+            @RequestParam(required = false) Double price,
+            @RequestParam(required = false) Integer stock,
             @RequestParam(required = false) Long idCategory) {
         List<Producto> productos = productoService.listarProductos(name,price,stock,idCategory);
         return ResponseEntity.ok(productos);
