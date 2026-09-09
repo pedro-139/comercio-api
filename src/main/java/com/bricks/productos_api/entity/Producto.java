@@ -21,21 +21,20 @@ public class Producto {
     private Long id;
 
     @NotBlank //La columna no puede estar vacía
-    @Column(nullable = false, name ="nombre", length = 100) // La columna no puede ser nula, debe llamarse "nombre" y tiene una cantidad máxima de 100 caracteres.
+    @Column(nullable = false, name ="nombre", length = 50) // La columna no puede ser nula, debe llamarse "nombre" y tiene una cantidad máxima de 50 caracteres.
     private String name;
 
 
-    //@DecimalMin(value = "0.0", inclusive = true)
+
     @Column(nullable = false, name ="precio")
     private Double price;
 
-    //@Min(0)
+
     @Column(nullable = false)
     private int stock;
 
-   // @Valid
-   // @NotNull
-    @ManyToOne(fetch = FetchType.EAGER, optional = false)
-    @JoinColumn(name = "category_id", nullable = false)
-    private Categoria category; // Deberia ser Long o una categoria?
+
+    @ManyToOne(fetch = FetchType.EAGER, optional = false) //Muchos productos pertenecen a una categoria y una categoria puede tener muchos productos.
+    @JoinColumn(name = "category_id", nullable = false, referencedColumnName = "id")
+    private Categoria categoria; // Deberia ser Long o una categoria?
 }

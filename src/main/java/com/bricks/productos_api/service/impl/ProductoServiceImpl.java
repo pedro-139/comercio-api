@@ -33,7 +33,7 @@ public class ProductoServiceImpl implements ProductoService {
 
     //Si existe se actualiza
     productoExistente.setName(producto.getName());
-    productoExistente.setCategory(producto.getCategory());
+    productoExistente.setCategoria(producto.getCategoria());
     productoExistente.setPrice(producto.getPrice());
     productoExistente.setStock(producto.getStock());
 
@@ -55,7 +55,7 @@ public class ProductoServiceImpl implements ProductoService {
     }
     @Override
     public List<Producto> obtenerProductosPorNombre(String nombre){
-        return productoRepository.findByNombre(nombre);
+        return productoRepository.findByName(nombre);
 
     }
 
@@ -66,11 +66,11 @@ public class ProductoServiceImpl implements ProductoService {
 
     @Override
     public List<Producto> obtenerProductosPorPrecio(Double precio){
-        return productoRepository.findByPrecio(precio);
+        return productoRepository.findByPrice(precio);
     }
 
     @Override
     public List<Producto> obtenerProductosPorCategoria(Categoria categoria){
-        return productoRepository.findByCategory(categoria);
+        return productoRepository.findByCategoria(categoria);
     }
 }

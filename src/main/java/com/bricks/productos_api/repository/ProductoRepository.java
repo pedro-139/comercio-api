@@ -21,13 +21,13 @@ public interface ProductoRepository extends JpaRepository<Producto,Long> {
 
 
 
-        List<Producto> findByNombre(String nombre);
+        List<Producto> findByName(String name);
 
-        List<Producto> findByPrecio(Double precio);
+        List<Producto> findByPrice(Double price);
 
         List<Producto> findByStock(int stock);
 
-        List<Producto> findByCategory(Categoria category);
+        List<Producto> findByCategoria(Categoria categoria);
 
          Optional<Producto> findById(Long id);
 }

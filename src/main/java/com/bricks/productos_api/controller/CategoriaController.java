@@ -1,6 +1,6 @@
 package com.bricks.productos_api.controller;
 
-/*import com.bricks.productos_api.entity.Categoria;
+import com.bricks.productos_api.entity.Categoria;
 import com.bricks.productos_api.entity.Producto;
 import com.bricks.productos_api.service.CategoriaService;
 import com.bricks.productos_api.service.ProductoService;
@@ -16,20 +16,20 @@ import java.util.List;
 @RequestMapping("/categories")
 
 public class CategoriaController  {
-    //@Autowired
-    //private CategoriaService categoriaService;
+    @Autowired
+    private CategoriaService categoriaService;
 
     /*
     El ResponseEntity<?> es una clase que representa todas las respuestas HTTP y '?' es un tipo de dato generico por lo que
     la respuestas puede ser de cualquier tipo.
      */
-/*
+
+    @GetMapping
     public ResponseEntity<List<Categoria>> listarCategorias(){
-        List<Categoria> Categorias = CategoriaService.listarCategorias();
+        List<Categoria> Categorias = categoriaService.listarCategorias();
         return ResponseEntity.ok(Categorias);
     }
 
 
 }
 
- */

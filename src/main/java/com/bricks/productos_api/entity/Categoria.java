@@ -9,6 +9,10 @@ import lombok.*;
 @NoArgsConstructor
 public class Categoria {
     @Id
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column (name = "id")
+    private Long idCategoria;
+
+    @Column (name = "name", nullable = false, length = 50)
     private String name;
 }

@@ -52,7 +52,7 @@ public class ProductoController {
            productoActualizado.setName(producto.getName());
            productoActualizado.setPrice(producto.getPrice());
            productoActualizado.setStock(producto.getStock());
-           productoActualizado.setCategory(producto.getCategory());
+           productoActualizado.setCategoria(producto.getCategoria());
 
            Producto productoDB = productoService.actualizarProducto(id,productoActualizado);
            return ResponseEntity.ok(productoActualizado);
