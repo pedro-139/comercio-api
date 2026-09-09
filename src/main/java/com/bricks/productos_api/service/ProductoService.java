@@ -13,22 +13,19 @@ import java.util.Optional;
 //Se recomienda implementar interfaces por
 public interface ProductoService {
 
-    Producto registrarProducto(Producto producto);
+    Producto registrarProducto(Long idCategoria, Producto producto);
 
-    List<Producto> listarProductos();
+    List<Producto> listarProductos(
+            String name,
+            double price,
+            int stock,
+            Long idCategory
+    );
 
-    Producto actualizarProducto(Long Id, Producto producto) throws Exception ;
+    Producto actualizarProducto(Long id, Producto producto) throws Exception ;
 
-    void eliminarProducto(Long Id) throws Exception ;
+    void eliminarProducto(Long id) throws Exception ;
 
-    List<Producto> obtenerProductosPorNombre(String nombre);
-
-    List<Producto> obtenerProductosPorStock(int Stock);
-
-    List<Producto> obtenerProductosPorPrecio(Double precio);
-
-    List<Producto> obtenerProductosPorCategoria(Categoria categoria);
-
-    Optional<Producto> buscarPorId(Long Id);
+    Producto buscarPorId(Long id);
 
 }

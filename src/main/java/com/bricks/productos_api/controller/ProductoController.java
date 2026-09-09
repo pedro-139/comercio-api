@@ -22,26 +22,25 @@ public class ProductoController {
      */
     @PostMapping
     public ResponseEntity<?> registrarProducto(@RequestBody Producto producto){ // @RequestBody toma el cuerpo de la petición HTTP y lo convierte en un objeto Producto.
-        Producto nuevoProducto = productoService.registrarProducto(producto);
+        Producto nuevoProducto = productoService.registrarProducto(producto.getCategoria().getIdCategoria(),producto);
         return ResponseEntity.status(HttpStatus.CREATED).body(nuevoProducto);
     }
 
     @GetMapping
-    /*
-     @RequestParam(required = false) String nombre,
-        @RequestParam(required = false) Double precio,
-        @RequestParam(required = false) int stock,
-         @RequestParam(required = false) Categoria categoria,
-     */
-    public ResponseEntity<List<Producto>> listarProductos(){
-        List<Producto> productos = productoService.listarProductos();
+
+    public ResponseEntity<List<Producto>> listarProductos(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) double price,
+            @RequestParam(required = false) int stock,
+            @RequestParam(required = false) Long idCategory) {
+        List<Producto> productos = productoService.listarProductos(name,price,stock,idCategory);
         return ResponseEntity.ok(productos);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<?> buscarPorId (@PathVariable Long id){  // @PathVariable toma el id de la petición HTTP (GET /products/5) y lo convierte en un Long -> id = 5.
-        Optional<Producto> producto = productoService.buscarPorId(id);
-        return producto.isPresent() ? ResponseEntity.ok(producto.get()) : ResponseEntity.status(HttpStatus.NOT_FOUND).body("Producto no encontrado");
+        Producto producto = productoService.buscarPorId(id);
+        return ResponseEntity.ok(producto);
     }
 
    @PutMapping("/{id}")
@@ -64,9 +63,9 @@ public class ProductoController {
    }
 
    @DeleteMapping("/{id}")
-    public ResponseEntity<?> eliminarProducto(@PathVariable Long Id){
+    public ResponseEntity<?> eliminarProducto(@PathVariable Long id){
         try{
-            productoService.eliminarProducto(Id);
+            productoService.eliminarProducto(id);
             return ResponseEntity.status(HttpStatus.NO_CONTENT).body("");
         }
         catch(Exception exception){
