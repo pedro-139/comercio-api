@@ -2,14 +2,12 @@ package com.bricks.productos_api.repository;
 
 import com.bricks.productos_api.model.Producto;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 @Repository
-public interface ProductoRepository extends JpaRepository<Producto,Long>, JpaSpecificationExecutor<Producto> {
+public interface ProductoRepository extends JpaRepository<Producto,Long> {
 
         List<Producto> findByName(String name);
 
@@ -17,5 +15,5 @@ public interface ProductoRepository extends JpaRepository<Producto,Long>, JpaSpe
 
         List<Producto> findByStock(Integer stock);
 
-        List<Producto> findByCategory_Id(Long categoryId);
+        List<Producto> findByCategoryId(Long categoryId);
 }

@@ -7,8 +7,7 @@ import org.springframework.context.annotation.Configuration;
 @EnableCaching
 public class CacheConfig {
 
-    // No necesitas escribir ningún metodo aquí adentro por ahora.
-    // Solo con tener esta clase con estas dos anotaciones,
+    // Con tener esta clase con estas dos anotaciones,
     // Spring Boot detecta automáticamente que debe encender la caché.
 
 }

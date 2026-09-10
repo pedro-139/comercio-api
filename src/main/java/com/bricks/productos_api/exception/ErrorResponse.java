@@ -4,7 +4,6 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Data
-@AllArgsConstructor
 public class ErrorResponse {
     private String message;
     private int statusCode;
@@ -14,6 +13,7 @@ public class ErrorResponse {
     public ErrorResponse(String message, int statusCode, String errorDetails) {
         this.message = message;
         this.statusCode = statusCode;
+        this.time = LocalDateTime.now();
         this.errorDetails = errorDetails;
     }
 }

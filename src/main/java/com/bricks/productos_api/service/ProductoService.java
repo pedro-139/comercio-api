@@ -2,25 +2,24 @@ package com.bricks.productos_api.service;
 
 
 
-import com.bricks.productos_api.model.Producto;
+import com.bricks.productos_api.dto.ProductoDTO;
 import java.util.List;
-import java.util.Optional;
 
 public interface ProductoService {
 
-    Producto save(Long idCategoria, Producto producto) throws Exception;
+    ProductoDTO save(ProductoDTO productoDTO);
 
-    List<Producto> findAll(
+    List<ProductoDTO> findAll(
             String name,
             Double price,
             Integer stock,
             Long categoryId
-    ) throws Exception;
+    );
 
-    Producto update (Long id, Producto producto)throws Exception ;
+    ProductoDTO update (Long id, ProductoDTO productoDTO);
 
-    boolean delete(Long id) throws Exception;
+    boolean delete(Long id);
 
-    Producto findById(Long id)throws Exception;
+    ProductoDTO findById(Long id);
 
 }

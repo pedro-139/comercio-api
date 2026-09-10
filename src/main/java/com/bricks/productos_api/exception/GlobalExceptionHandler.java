@@ -11,7 +11,7 @@ import java.util.Map;
 
 //Se convierte en un manejador global de errores para todos los controladores, basicamente detecta
 //cuando ocurre una expepcion en el sistema y va a realizar algo.
-@RestControllerAdvice //Controla las excepciones?
+@RestControllerAdvice //Controla las excepciones
 public class GlobalExceptionHandler {
 
     //Indicamos la expepcion que manejara el metodo
@@ -40,23 +40,29 @@ public class GlobalExceptionHandler {
         ErrorResponse errorResponse = new ErrorResponse(
                 exception.getMessage(),
                 HttpStatus.SERVICE_UNAVAILABLE.value(),
-                "Servicio no disponible"
+                "Servicio no disponible. Intente nuevamente más tarde."
         );
         return new ResponseEntity<>(errorResponse,HttpStatus.SERVICE_UNAVAILABLE);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<?> handleValidationsExceptions(MethodArgumentNotValidException exception){
-        Map<String,String> errors = new HashMap<>();
-        exception.getBindingResult().getFieldErrors()
-                .forEach(error -> errors.put(error.getField(),error.getDefaultMessage()));
-        String errorMessage = "Errores de validación en los campos:" + String.join(", ", errors.keySet());
+    public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException exception){
 
         ErrorResponse errorResponse = new ErrorResponse(
-                errorMessage,
+                "Los datos enviados no son válidos",
                 HttpStatus.BAD_REQUEST.value(),
-                "Validación fallida"
+                "Error de validación"
         );
-        return new ResponseEntity<>(errorResponse,HttpStatus.BAD_REQUEST);
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleUnexpectedException(Exception exception) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                "Ocurrió un error interno. Intente nuevamente más tarde.",
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                "Error interno del servidor"
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
