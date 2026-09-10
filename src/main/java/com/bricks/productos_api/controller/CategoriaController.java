@@ -1,9 +1,7 @@
 package com.bricks.productos_api.controller;
 
-import com.bricks.productos_api.entity.Categoria;
-import com.bricks.productos_api.entity.Producto;
+import com.bricks.productos_api.model.Categoria;
 import com.bricks.productos_api.service.CategoriaService;
-import com.bricks.productos_api.service.ProductoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,7 +24,7 @@ public class CategoriaController  {
 
     @GetMapping
     public ResponseEntity<List<Categoria>> listarCategorias(){
-        List<Categoria> Categorias = categoriaService.listarCategorias();
+        List<Categoria> Categorias = categoriaService.getAll();
         return ResponseEntity.ok(Categorias);
     }
 

@@ -1,93 +1,134 @@
 package com.bricks.productos_api.service.impl;
 
-
-import com.bricks.productos_api.entity.Categoria;
-import com.bricks.productos_api.entity.Producto;
+import com.bricks.productos_api.model.Categoria;
+import com.bricks.productos_api.model.Producto;
 import com.bricks.productos_api.exception.ResourceNotFoundException;
 import com.bricks.productos_api.repository.ProductoRepository;
 import com.bricks.productos_api.service.CategoriaService;
 import com.bricks.productos_api.service.ProductoService;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.transaction.Transactional;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
-import java.util.List;;
+
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
+
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Optional;;
 
 @Service
+@AllArgsConstructor
 
 public class ProductoServiceImpl implements ProductoService {
-    @Autowired
-    private ProductoRepository productoRepository;
 
-    @Autowired
-    private CategoriaService categoriaService;
+    private final ProductoRepository productoRepository;
+    private final CategoriaService categoriaService;
 
 
     @Override
-    public Producto registrarProducto(Long idCategoria, Producto producto){
-
-        //Al momento de registrar un producto se valida si la categoria existe, si no existe
-        // se maneja la excepción.
-        Categoria categoria = categoriaService.buscarPorId(idCategoria);
-
-        producto.setCategoria(categoria);
-        return productoRepository.save(producto);
+    @Transactional //Significa que haran transacciones con la base de datos.
+    /*
+    No podria recibir solo producto? ya que el id viene ahi dentro.
+     */
+    public Producto save(Long idCategoria, Producto producto) throws Exception {
+        try {
+            Categoria categoria = categoriaService.findById(idCategoria);
+            producto.setCategory(categoria);
+            return productoRepository.save(producto);
+        }
+        catch(Exception e){
+            throw new Exception(e.getMessage());
+        }
     }
 
-
-    // Devuelve un String con el filtro de busqueda.
-    private String determinarFiltroActivo(String name, Double price, Integer stock, Long idCategory) {
-        if (name != null) return "name";
-            else if (price != null) return "price";
-                else if (stock != null) return "stock";
-                    else if (idCategory != null) return "idCategoria";
-        return "ninguno";
+    private String filtrar (String name, Double price, Integer stock, Long categoryId ){
+        if (name!=null) return "name";
+        else if( price != null) return "price";
+            else if (stock!= null) return "stock";
+                else if (categoryId != null) return "category";
+        return "default";
     }
-
 
     @Override
+    //No uso @Transactional porque solo estoy leyendo.
     // Solo acepta un filtro a la vez.
-    public List<Producto> listarProductos(
-            String name,
-            Double price,
-            Integer stock,
-            Long categoryId
-    ){
-        String filtro = determinarFiltroActivo(name,price,stock, categoryId);
-        return switch(filtro){
-            case "name" -> productoRepository.findByName(name);
-            case "price" -> productoRepository.findByPrice(price);
-            case "stock" -> productoRepository.findByStock(stock);
-            case "idCategoria" -> productoRepository.findByCategoria_Id(categoryId);
-            default -> productoRepository.findAll();
-        };
+    public List<Producto> findAll( String name, Double price, Integer stock,  Long categoryId
+    )throws Exception{
+        try {
+            List<Producto> entities = new LinkedList<Producto>();
+            String filtro = filtrar(name, price, stock, categoryId);
+            switch (filtro) {
+                case "name" -> entities = productoRepository.findByName(name);
+                case "price" -> entities = productoRepository.findByPrice(price);
+                case "stock" -> entities = productoRepository.findByStock(stock);
+                case "category" -> entities = productoRepository.findByCategory_Id(categoryId);
+                default -> entities = productoRepository.findAll();
+            }
+            ;
+            return entities;
+        }
+        catch(Exception e){
+            throw new Exception(e.getMessage());
+        }
     }
 
     @Override
-    public Producto actualizarProducto(Long id, Producto producto) {
-    Producto productoExistente = productoRepository.findById(id)
-        .orElseThrow(() -> new ResourceNotFoundException("Producto con Id "+id +" no encontrado"));
+    @Transactional
+    //Borra de la cache el producto modificado
+    @CacheEvict( value = "productosCache", key = "#id")
+    public Producto update(Long id, Producto producto)throws Exception {
+        try {
 
-    //Si existe se actualiza
-    productoExistente.setName(producto.getName());
-    productoExistente.setCategoria(producto.getCategoria());
-    productoExistente.setPrice(producto.getPrice());
-    productoExistente.setStock(producto.getStock());
+            //Obtengo el producto a actualizar
+            Optional<Producto> entityOptional = productoRepository.findById(id);
+            Producto productoNuevo = entityOptional.get();
 
-    return productoRepository.save(productoExistente);
+            //Lo actualizo con los datos ingresados
+            productoNuevo.setName(producto.getName());
+            productoNuevo.setPrice(producto.getPrice());
+            productoNuevo.setStock(producto.getStock());
+            productoNuevo.setCategory(producto.getCategory());
+
+            //actualizo el producto
+            return productoRepository.save(productoNuevo);
+        } catch (Exception e) {
+            throw new Exception((e.getMessage()));
+        }
     }
 
     @Override
-    public void eliminarProducto(Long id)  {
-        Producto productoExistente = productoRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Producto con Id "+id +" no encontrado"));
+    @Transactional
+    //Borra de la cache el producto modificado
+    @CacheEvict( value = "productosCache", key = "#id")
+    public boolean delete(Long id) throws Exception {
+            try {
+                if (productoRepository.existsById(id)) {
+                    productoRepository.deleteById(id);
+                    return true;
+                }
+                else{
+                    throw new ResourceNotFoundException(" EL id no existe en la DB");
+                }
+            }catch(Exception e){
+                    throw new Exception(e.getMessage());
+                }
+            }
 
-        // Si el producto a eliminar existe
-        productoRepository.deleteById(id);
-    }
 
     @Override
-    public Producto buscarPorId(Long id){
-        return productoRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Producto con ID " +id +" no encontrado"));
+    @Transactional
+    // Guarda el resultado en caché. La próxima vez, no ejecutará la consulta a la BD.
+    @Cacheable(value = "productosCache", key = "#id")
+    public Producto findById(Long id)throws Exception{
+        try {
+            Optional<Producto> entityOptional = productoRepository.findById(id);
+            return entityOptional.get(); //Si es null tira una excepcion
+        }
+        catch(ResourceNotFoundException e){
+            throw new ResourceNotFoundException("Producto con ID " +id +" no encontrado");
+        }
+
     }
 }

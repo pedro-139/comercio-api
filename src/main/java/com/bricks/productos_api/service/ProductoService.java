@@ -2,24 +2,25 @@ package com.bricks.productos_api.service;
 
 
 
-import com.bricks.productos_api.entity.Producto;
+import com.bricks.productos_api.model.Producto;
 import java.util.List;
+import java.util.Optional;
 
 public interface ProductoService {
 
-    Producto registrarProducto(Long idCategoria, Producto producto);
+    Producto save(Long idCategoria, Producto producto) throws Exception;
 
-    List<Producto> listarProductos(
+    List<Producto> findAll(
             String name,
             Double price,
             Integer stock,
             Long categoryId
-    );
+    ) throws Exception;
 
-    Producto actualizarProducto(Long id, Producto producto) ;
+    Producto update (Long id, Producto producto)throws Exception ;
 
-    void eliminarProducto(Long id) ;
+    boolean delete(Long id) throws Exception;
 
-    Producto buscarPorId(Long id);
+    Producto findById(Long id)throws Exception;
 
 }

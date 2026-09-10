@@ -1,11 +1,10 @@
-package com.bricks.productos_api.entity;
+package com.bricks.productos_api.model;
 
 import jakarta.persistence.*;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.*;
 
 @Entity
@@ -21,11 +20,14 @@ public class Producto {
     private Long id;
 
     @NotBlank //La columna no puede estar vacía
-    @Column(nullable = false, name ="nombre", length = 50) // La columna no puede ser nula, debe llamarse "nombre" y tiene una cantidad máxima de 50 caracteres.
+    @Column(nullable = false, name ="nombre", length = 100)
     private String name;
 
 
 
+    @NotNull(message = "El precio es obligatorio")
+    @Positive(message = "El precio debe ser mayor a cero")
+    @PositiveOrZero(message = "El stock no puede ser negativo")
     @Column(nullable = false, name ="precio")
     private Double price;
 
@@ -36,5 +38,7 @@ public class Producto {
 
     @ManyToOne //Muchos productos pertenecen a una categoria y una categoria puede tener muchos productos.
     @JoinColumn(name = "categoria", nullable = false, referencedColumnName = "id")
-    private Categoria categoria; // Deberia ser Long o una categoria?
+    private Categoria category; // Deberia ser Long o una categoria?
+
+
 }

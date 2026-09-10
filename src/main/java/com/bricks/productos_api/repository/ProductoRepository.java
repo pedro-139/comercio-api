@@ -1,20 +1,21 @@
 package com.bricks.productos_api.repository;
 
-import com.bricks.productos_api.entity.Producto;
+import com.bricks.productos_api.model.Producto;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 @Repository
-public interface ProductoRepository extends JpaRepository<Producto,Long> {
+public interface ProductoRepository extends JpaRepository<Producto,Long>, JpaSpecificationExecutor<Producto> {
 
         List<Producto> findByName(String name);
 
         List<Producto> findByPrice(Double price);
 
-        List<Producto> findByStock(int stock);
+        List<Producto> findByStock(Integer stock);
 
-        List<Producto> findByCategoria_Id(Long categoriaId);
+        List<Producto> findByCategory_Id(Long categoryId);
 }
