@@ -30,7 +30,7 @@ class ProductoServiceImplTest {
     private ProductoRepository productoRepository;
 
     @Mock
-    private CategoriaService categoriaService;
+    private CategoriaServiceImpl categoriaService;
 
     @Mock
     private ProductoMapper productoMapper;
