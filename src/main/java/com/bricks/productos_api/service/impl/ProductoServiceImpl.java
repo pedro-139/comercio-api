@@ -1,11 +1,12 @@
 package com.bricks.productos_api.service.impl;
 
-import com.bricks.productos_api.dto.ProductoDTO;
-
+import com.bricks.productos_api.dto.categoria.CategoriaResponse;
+import com.bricks.productos_api.dto.producto.ProductoRequest;
+import com.bricks.productos_api.dto.producto.ProductoResponse;
 import com.bricks.productos_api.mapper.ProductoMapper;
 import com.bricks.productos_api.mapper.CategoriaMapper;
-import com.bricks.productos_api.model.Categoria;
-import com.bricks.productos_api.model.Producto;
+import com.bricks.productos_api.entity.Categoria;
+import com.bricks.productos_api.entity.Producto;
 import com.bricks.productos_api.exception.ResourceNotFoundException;
 
 import com.bricks.productos_api.repository.ProductoRepository;
@@ -21,13 +22,12 @@ import org.springframework.cache.annotation.CacheEvict;
 
 import java.util.List;
 
-@Service
 
+@Service
 public class ProductoServiceImpl implements ProductoService {
 
     @Autowired
     private  ProductoRepository productoRepository;
-
 
     @Autowired
     private  CategoriaService categoriaService;
@@ -35,25 +35,24 @@ public class ProductoServiceImpl implements ProductoService {
     @Autowired
     private  ProductoMapper productoMapper;
 
-    @Autowired
-    private  CategoriaMapper categoriaMapper;
 
     @Override
-    @Transactional //Significa que haran transacciones con la base de datos.
+    @Transactional
+    @CacheEvict( value = "productosCache", key = "'all'") // Borra la caché
+    public ProductoResponse create(ProductoRequest productoRequest) {
 
-    public ProductoDTO save(ProductoDTO productoDTO) {
+        Categoria categoria = categoriaService.getCategoriaById(productoRequest.getCategoryId());
 
-        Categoria categoria = categoriaMapper.toEntity(categoriaService.findById(productoDTO.getCategoryId()));
+        Producto producto = productoMapper.toEntity(productoRequest,categoria);
+        Producto guardado = productoRepository.save(producto);
 
-
-        Producto producto = productoMapper.toEntity(productoDTO);
-        producto.setCategory(categoria);
-
-        return productoMapper.toDTO(productoRepository.save(producto));
+        return productoMapper.toDTO(guardado);
     }
 
-    @Override
-    //No uso @Transactional porque solo estoy leyendo.
+
+
+   // @Override
+   /*
     // Solo acepta un filtro a la vez.
     public List<ProductoDTO> findAll(String name, Double price, Integer stock, Long categoryId) {
         List<Producto> productos;
@@ -71,23 +70,21 @@ public class ProductoServiceImpl implements ProductoService {
         return productos.stream().map(productoMapper::toDTO).toList();
     }
 
+*/
+
     @Override
     @Transactional
-    //Borra de la cache el producto modificado
-    @CacheEvict( value = "productosCache", key = "#id")
-    public ProductoDTO update(Long id, ProductoDTO productoDTO) {
+    @CacheEvict( value = "productosCache", key = "#id") //Borra de la cache el producto modificado
+    public ProductoResponse update(Long id, ProductoRequest productoRequest) {
         Producto productoExistente = productoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Producto con ID " +id +" no encontrado"));
 
-        productoExistente.setName(productoDTO.getName());
-        productoExistente.setPrice(productoDTO.getPrice());
-        productoExistente.setStock(productoDTO.getStock());
+        productoExistente.setName(productoRequest.getName());
+        productoExistente.setPrice(productoRequest.getPrice());
+        productoExistente.setStock(productoRequest.getStock());
 
-        Categoria categoria = categoriaMapper.toEntity(
-                categoriaService.findById(productoDTO.getCategoryId())
-        );
-
-        productoExistente.setCategory(categoria);
+        Categoria category = categoriaService.getCategoriaById(productoRequest.getCategoryId());
+        productoExistente.setCategory(category);
 
         //actualizo el producto
         Producto productoActualizado = productoRepository.save(productoExistente);
@@ -97,8 +94,7 @@ public class ProductoServiceImpl implements ProductoService {
 
     @Override
     @Transactional
-    //Borra de la cache el producto eliminado
-    @CacheEvict( value = "productosCache", key = "#id")
+    @CacheEvict( value = "productosCache", key = "#id")//Borra de la cache el producto eliminado
     public boolean delete(Long id) {
         if (productoRepository.existsById(id)) {
             productoRepository.deleteById(id);
@@ -109,13 +105,13 @@ public class ProductoServiceImpl implements ProductoService {
     }
 
 
+
     @Override
-    // Guarda el resultado en caché. La próxima vez, no ejecutará la consulta a la BD.
-    @Cacheable(value = "productosCache", key = "#id")
-    public ProductoDTO findById(Long id) {
+    @Cacheable(value = "productosCache", key = "#id") // Guarda el resultado en caché. La próxima vez, no ejecutará la consulta a la BD.
+    public ProductoResponse findById(Long id) {
         System.out.println("------> Accediento a base de datos <-----------");
-        return productoRepository.findById(id)
-                .map(productoMapper::toDTO)
+        Producto producto =  productoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Producto con ID " + id + " no encontrado"));
+        return productoMapper.toDTO(producto);
     }
 }

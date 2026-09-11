@@ -2,24 +2,27 @@ package com.bricks.productos_api.service;
 
 
 
-import com.bricks.productos_api.dto.ProductoDTO;
+import com.bricks.productos_api.dto.producto.ProductoRequest;
+import com.bricks.productos_api.dto.producto.ProductoResponse;
+
 import java.util.List;
 
 public interface ProductoService {
 
-    ProductoDTO save(ProductoDTO productoDTO);
 
-    List<ProductoDTO> findAll(
+    ProductoResponse create(ProductoRequest productoRequest);
+
+    List<ProductoResponse> findAll(
             String name,
             Double price,
             Integer stock,
             Long categoryId
     );
 
-    ProductoDTO update (Long id, ProductoDTO productoDTO);
+    ProductoResponse update (Long id, ProductoRequest productoRequest);
 
     boolean delete(Long id);
 
-    ProductoDTO findById(Long id);
+    ProductoResponse findById(Long id);
 
 }

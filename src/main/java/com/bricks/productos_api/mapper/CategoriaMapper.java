@@ -1,23 +1,22 @@
 package com.bricks.productos_api.mapper;
 
-import com.bricks.productos_api.dto.CategoriaDTO;
-import com.bricks.productos_api.model.Categoria;
-import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.bricks.productos_api.dto.categoria.CategoriaResponse;
+import com.bricks.productos_api.entity.Categoria;
 import org.springframework.stereotype.Component;
+
 
 @Component
 public class CategoriaMapper {
-    @Autowired
-    private ModelMapper modelMapper;
 
-    public CategoriaDTO toDTO(Categoria categoria){
-        return modelMapper.map(categoria, CategoriaDTO.class);
+
+    public CategoriaResponse toDTO(Categoria categoria) {
+        if (categoria == null) return null;
+        return  new CategoriaResponse(categoria.getId(),categoria.getName());
     }
 
-
-    public Categoria toEntity(CategoriaDTO categoriaDTO){
-            return modelMapper.map(categoriaDTO,Categoria.class);
+    public Categoria toEntity(CategoriaResponse DTO){
+        if (DTO == null) return null;
+        return new Categoria(DTO.getId(),DTO.getName());
     }
 
 }
