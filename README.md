@@ -6,7 +6,6 @@ API REST desarrollada en Java 21 con Spring Boot para la administración de prod
 ## Requisitos para ejecutar el proyecto
 - Java 21.
 - Conexión a internet (necesaria para sincronizar las categorías desde la API externa de Escuelajs).
-- **Importante:** las categorías no se cargan solas al arrancar la app. Como `Producto` tiene una foreign key obligatoria hacia `categorias`, es necesario llamar una vez a `GET /categories` (desde Swagger o cualquier cliente) antes de crear productos o de cargar datos de prueba.
 
 ## Instrucciones de compilación y ejecución
 Desde la raíz del proyecto:
