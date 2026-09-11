@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,17 +16,14 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/products")
 public class ProductoController {
 
-    private final ProductoService productoService;
-
-    public ProductoController (ProductoService productoService){
-        this.productoService = productoService;
-    }
+    @Autowired
+    private ProductoService productoService;
 
     // ------------------------------------------
     // GET /products
     // ------------------------------------------
     @Operation(
-            summary = "Listado de productos",
+            summary = "Listar productos",
             description = "Devuelve todos los productos. Permite el filtrado de 1 atributo a la vez."
     )
     @ApiResponse(
@@ -95,7 +93,7 @@ public class ProductoController {
     // ------------------------------------------
     @PutMapping("/{id}")
     @Operation(
-            summary = "Actualizacion de producto",
+            summary = "Actualizar producto",
             description = "Actualiza un producto identificado por su ID."
     )
     @ApiResponses({

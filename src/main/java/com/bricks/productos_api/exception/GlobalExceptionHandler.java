@@ -14,7 +14,6 @@ import java.util.Map;
  * Manejador global de errores para todos los controllers: en vez de que cada endpoint
  * tenga su propio try/catch, cualquier excepción lanzada desde un service o controller
  * termina en alguno de estos métodos, que la convierte en una respuesta HTTP
- * ({@link ErrorResponse}) con el status code correcto.
  */
 @RestControllerAdvice //Controla las excepciones
 public class GlobalExceptionHandler {
@@ -30,7 +29,7 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse,HttpStatus.NOT_FOUND);
     }
 
-    /** Errores de negocio por datos inválidos que no cubre {@code @Valid} -> HTTP 400. */
+    /** Errores de negocio por datos inválidos que no cubre @Valid -> HTTP 400. */
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<ErrorResponse> handleBadRequestException(BadRequestException exception){
         ErrorResponse errorResponse = new ErrorResponse(
@@ -52,7 +51,7 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse,HttpStatus.SERVICE_UNAVAILABLE);
     }
 
-    /** Se dispara cuando un {@code @RequestBody} con {@code @Valid} no pasa sus validaciones -> HTTP 400. */
+    /** Se dispara cuando un @RequestBody con @Valid no pasa sus validaciones -> HTTP 400. */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException exception){
 

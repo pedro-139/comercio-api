@@ -3,8 +3,8 @@ package com.bricks.productos_api.service.impl;
 import com.bricks.productos_api.dto.producto.ProductoRequest;
 import com.bricks.productos_api.dto.producto.ProductoResponse;
 import com.bricks.productos_api.mapper.ProductoMapper;
-import com.bricks.productos_api.entity.Categoria;
-import com.bricks.productos_api.entity.Producto;
+import com.bricks.productos_api.model.Categoria;
+import com.bricks.productos_api.model.Producto;
 import com.bricks.productos_api.exception.ResourceNotFoundException;
 
 import com.bricks.productos_api.repository.ProductoRepository;
@@ -12,6 +12,8 @@ import com.bricks.productos_api.service.CategoriaService;
 import com.bricks.productos_api.service.ProductoService;
 
 import jakarta.transaction.Transactional;
+import lombok.AllArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import org.springframework.cache.annotation.Cacheable;
@@ -23,18 +25,17 @@ import java.util.List;
 @Service
 public class ProductoServiceImpl implements ProductoService {
 
-    private final ProductoRepository productoRepository;
-    private final CategoriaService categoriaService;
-    private final ProductoMapper productoMapper;
+    @Autowired
+    private ProductoRepository productoRepository;
 
-    public ProductoServiceImpl(ProductoRepository productoRepository,  CategoriaService categoriaService,  ProductoMapper productoMapper) {
-        this.productoRepository = productoRepository;
-        this.categoriaService = categoriaService;
-        this.productoMapper = productoMapper;
-    }
+    @Autowired
+    private CategoriaService categoriaService;
+
+    @Autowired
+    private ProductoMapper productoMapper;
+
 
     @Override
-    @Transactional
     public ProductoResponse create(ProductoRequest productoRequest) {
 
         Categoria categoria = categoriaService.getCategoriaById(productoRequest.getCategoryId());
@@ -67,32 +68,29 @@ public class ProductoServiceImpl implements ProductoService {
 
 
     @Override
-    @Transactional
-    @CacheEvict( value = "productosCache", key = "#id") //Borra de la cache el producto modificado
+    @CacheEvict( value = "productosCache", key = "#id") // Borra de la cache el producto modificado
     public ProductoResponse update(Long id, ProductoRequest productoRequest) {
-        Producto productoExistente = productoRepository.findById(id)
+        Producto existente = productoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Producto con ID " +id +" no encontrado"));
 
-        productoExistente.setName(productoRequest.getName());
-        productoExistente.setPrice(productoRequest.getPrice());
-        productoExistente.setStock(productoRequest.getStock());
+        existente.setName(productoRequest.getName());
+        existente.setPrice(productoRequest.getPrice());
+        existente.setStock(productoRequest.getStock());
 
-        Categoria category = categoriaService.getCategoriaById(productoRequest.getCategoryId());
-        productoExistente.setCategory(category);
+        Categoria categoria = categoriaService.getCategoriaById(productoRequest.getCategoryId());
+        existente.setCategory(categoria);
 
         //actualizo el producto
-        Producto productoActualizado = productoRepository.save(productoExistente);
+        Producto productoActualizado = productoRepository.save(existente);
         return productoMapper.toDTO(productoActualizado);
 
     }
 
     @Override
-    @Transactional
-    @CacheEvict( value = "productosCache", key = "#id")//Borra de la cache el producto eliminado
-    public boolean delete(Long id) {
+    @CacheEvict( value = "productosCache", key = "#id")// Borra de la cache el producto eliminado
+    public void delete(Long id) {
         if (productoRepository.existsById(id)) {
             productoRepository.deleteById(id);
-            return true;
         } else{
             throw new ResourceNotFoundException("Producto con ID " +id +" no encontrado");
         }

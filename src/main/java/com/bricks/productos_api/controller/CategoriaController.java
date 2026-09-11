@@ -4,6 +4,7 @@ import com.bricks.productos_api.dto.categoria.CategoriaResponse;
 import com.bricks.productos_api.service.CategoriaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,12 +16,9 @@ import java.util.List;
 @RestController
 @RequestMapping("/categories")
 public class CategoriaController  {
-    private final CategoriaService categoriaService;
+    @Autowired
+    private CategoriaService categoriaService;
 
-
-    public CategoriaController(CategoriaService categoriaService) {
-        this.categoriaService = categoriaService;
-    }
 
     @Operation(
             summary = "Listar categorias",

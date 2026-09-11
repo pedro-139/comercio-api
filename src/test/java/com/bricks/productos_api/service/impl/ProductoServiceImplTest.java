@@ -2,14 +2,13 @@ package com.bricks.productos_api.service.impl;
 
 import com.bricks.productos_api.dto.producto.ProductoRequest;
 import com.bricks.productos_api.dto.producto.ProductoResponse;
-import com.bricks.productos_api.entity.Categoria;
-import com.bricks.productos_api.entity.Producto;
+import com.bricks.productos_api.model.Categoria;
+import com.bricks.productos_api.model.Producto;
 import com.bricks.productos_api.exception.ResourceNotFoundException;
 import com.bricks.productos_api.mapper.ProductoMapper;
 import com.bricks.productos_api.repository.ProductoRepository;
 import com.bricks.productos_api.service.CategoriaService;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

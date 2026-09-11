@@ -1,8 +1,7 @@
 package com.bricks.productos_api.service.impl;
 
-
 import com.bricks.productos_api.dto.categoria.CategoriaResponse;
-import com.bricks.productos_api.entity.Categoria;
+import com.bricks.productos_api.model.Categoria;
 import com.bricks.productos_api.exception.ExternalServiceException;
 import com.bricks.productos_api.exception.ResourceNotFoundException;
 import com.bricks.productos_api.mapper.CategoriaMapper;
@@ -35,7 +34,6 @@ public class CategoriaServiceImpl implements CategoriaService {
 
 
     @Override
-    @Transactional
     public List<CategoriaResponse> getAll() {
         List<Categoria> categorias = categoriaRepository.findAll();
         if (categorias.isEmpty()) {
@@ -46,7 +44,6 @@ public class CategoriaServiceImpl implements CategoriaService {
     }
 
     @Override
-    @Transactional
     public CategoriaResponse findById(Long id) {
         Categoria categoria = categoriaRepository.findById(id)
                 .orElseGet(() -> {
@@ -58,6 +55,7 @@ public class CategoriaServiceImpl implements CategoriaService {
         return categoriaMapper.toDTO(categoria);
     }
 
+    @Override
     public Categoria getCategoriaById(Long id){
         return categoriaRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Categoría con ID " + id + " no encontrada"));

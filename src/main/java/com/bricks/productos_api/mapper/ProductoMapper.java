@@ -3,8 +3,8 @@ package com.bricks.productos_api.mapper;
 import com.bricks.productos_api.dto.categoria.CategoriaResponse;
 import com.bricks.productos_api.dto.producto.ProductoRequest;
 import com.bricks.productos_api.dto.producto.ProductoResponse;
-import com.bricks.productos_api.entity.Categoria;
-import com.bricks.productos_api.entity.Producto;
+import com.bricks.productos_api.model.Categoria;
+import com.bricks.productos_api.model.Producto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

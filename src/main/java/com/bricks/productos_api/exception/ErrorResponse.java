@@ -3,10 +3,12 @@ package com.bricks.productos_api.exception;
 import lombok.*;
 import java.time.LocalDateTime;
 
-/** Cuerpo JSON estándar que se devuelve en toda respuesta de error (ver {@link GlobalExceptionHandler}). */
-@Data
+@Getter @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class ErrorResponse {
-    /** Mensaje legible sobre qué salió mal. */
+
+    // Mensaje sobre qué salió mal.
     private String message;
 
     private int statusCode;
