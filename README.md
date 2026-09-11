@@ -14,19 +14,19 @@ Desde la raíz del proyecto:
 **Compilar**
 ```bash
 ./gradlew build # Linux/macOS
-gradlew.bat build # Windows
+./gradlew.bat build # Windows
 ```
 
 **Ejecutar los tests**
 ```bash
 ./gradlew test          # Linux/macOS
-gradlew.bat test        # Windows
+./gradlew.bat test        # Windows
 ```
 
 **Ejecutar la aplicación**
 ```bash
 ./gradlew bootRun       # Linux/macOS
-gradlew.bat bootRun     # Windows
+./gradlew.bat bootRun     # Windows
 ```
 
 La aplicación queda disponible en `http://localhost:8080`.
@@ -39,7 +39,7 @@ La aplicación queda disponible en `http://localhost:8080`.
 - · Contraseña: (en blanco)
 
 ## Información necesaria para probar la API
-La app no carga datos de prueba en forma automática al arrancar. `src/main/resources/import.txt` contiene 30 inserts de productos de ejemplo (columnas `nombre`, `precio`, `stock`, `id_categoria`) pensados para pegarse manualmente en la consola H2 **después** de haber llamado `GET /categories` al menos una vez, ya que hacen referencia a los IDs de categoría 1 a 5.
+La app no carga datos de prueba en forma automática al arrancar. `src/main/resources/import.txt` contiene 30 inserts de productos de ejemplo (columnas `nombre`, `precio`, `stock`, `id_categoria`) pensados para pegarse manualmente en la consola H2 después de haber llamado `GET /categories` o `GET /products` al menos una vez, ya que hacen referencia a los IDs de categoría 1 a 5.
 
 **Endpoints — Productos**
 
@@ -94,21 +94,22 @@ Si no existe: `404 Not Found`. Eliminar responde `204 No Content`.
 **Códigos de error principales:** `400`, `404`, `503` (falla el servicio externo de categorías), `500`.
 
 **Flujo recomendado para probar (desde Swagger UI):**
-1. `GET /categories` — sincroniza y consulta las categorías (paso obligatorio antes de crear productos).
-2. *(Opcional)* Pegar el contenido de `import.txt` en la consola H2 (`http://localhost:8080/h2-console`) para cargar 30 productos de ejemplo, ya con las categorías disponibles.
+1. `GET /categories` — sincroniza y consulta las categorías.
+2. *(Opcional)* Pegar el contenido de `src\main\resources\import.txt` en la consola H2 (`http://localhost:8080/h2-console`) para cargar 30 productos de ejemplo, ya con las categorías disponibles.
 3. `GET /products` — ver los productos cargados.
 4. Probar filtros: `GET /products?categoryId=2`, `GET /products?name=Mouse Inalámbrico`.
 5. `GET /products/1` dos veces seguidas — la segunda vez no imprime el mensaje de acceso a base de datos en consola, lo que confirma que respondió desde cache.
 6. `POST /products` — crear uno nuevo.
-7. `PUT /products/{id}` — actualizarlo (invalida la cache de ese ID).
-8. `DELETE /products/{id}` — eliminarlo (invalida la cache de ese ID).
+7. `PUT /products/{id}` — actualizarlo (Elimina la cache de ese ID).
+8. `DELETE /products/{id}` — eliminarlo (Elimina la cache de ese ID).
 
 ## Explicación de las principales decisiones técnicas
-- **Arquitectura por capas** (Controller → Service → Repository → Model): separa responsabilidades para facilitar mantenibilidad y testing.
-- **DTOs separados** (`ProductoRequest`, `ProductoResponse`, `CategoriaResponse`): evitan exponer directamente las entidades JPA y controlan qué información entra y sale de la API. La conversión Entity ↔ DTO se aisló en clases `Mapper` dedicadas.
-- **H2 en memoria** con `ddl-auto=create-drop`: recrea el esquema en cada arranque para que `import.sql` cargue los datos de prueba automáticamente, sin riesgo real de pérdida de datos porque la base es en memoria.
-- **Filtro único por solicitud:** se decidió aceptar un solo filtro (`name`, `price`, `stock` o `categoryId`) por request, devolviendo `400 Bad Request` si se envía más de uno, en lugar de combinarlos con una lógica AND/OR no especificada en la consigna o ignorar alguno en silencio.
-- **RestClient** para la integración con la API pública de categorías de Escuelajs, sincronizando automáticamente solo cuando no hay datos locales.
-- **Jakarta Bean Validation** para validar automáticamente los datos de entrada.
+- **Arquitectura por capas** (Controller → Service → Repository → Model): Separa responsabilidades para facilitar mantenibilidad y legibilidad.
+- **DTOs separados** (`ProductoRequest`, `ProductoResponse`, `CategoriaResponse`): Evitan exponer directamente las entidades JPA y controlan qué información entra y sale de la API. La conversión Entity ↔ DTO se aisló en clases `Mapper` dedicadas.
+- **H2 en memoria**: Se utilizo h2 como base de datos en memoria para facilitar la ejecución y las pruebas del proyecto, sin necesidad de instalar o configurar una base de datos externa.
+- **Filtro único por solicitud:** Se decidió aceptar un solo filtro (`name`, `price`, `stock` o `categoryId`) por request, devolviendo `400 Bad Request` si se envía más de uno, en lugar de combinarlos mediante una lógica más compleja.
+
+- **RestClient** para la integración con la API pública de categorías, sincronizando automáticamente solo cuando no hay datos.
+- **Jakarta Bean Validation** Para validar automáticamente los datos de entrada.
 - **`@RestControllerAdvice`** (`GlobalExceptionHandler`) para centralizar el manejo de excepciones personalizadas (`ResourceNotFoundException`, `BadRequestException`, `ExternalServiceException`) con una estructura de respuesta de error común.
-- **Spring Cache** sobre la consulta de producto por ID (`@Cacheable`), invalidada con `@CacheEvict` en `update` y `delete`, ya que es la operación de lectura más repetida en un flujo típico de uso.
+- **Spring Cache** sobre la consulta de producto por ID (`@Cacheable`), invalidada con `@CacheEvict` en `update` y `delete`, ya que normalemte es la operación de lectura más repetida.
