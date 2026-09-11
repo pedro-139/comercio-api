@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 
-/**
+/*
  * Manejador global de errores para todos los controllers: en vez de que cada endpoint
  * tenga su propio try/catch, cualquier excepción lanzada desde un service o controller
  * termina en alguno de estos métodos, que la convierte en una respuesta HTTP
@@ -18,7 +18,7 @@ import java.util.Map;
 @RestControllerAdvice //Controla las excepciones
 public class GlobalExceptionHandler {
 
-    /** Se lanza cuando se busca un producto/categoría por ID y no existe -> HTTP 404. */
+    // Se lanza cuando se busca un producto/categoría por ID y no existe -> HTTP 404.
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleResourceNotFoundException(ResourceNotFoundException exception){
         ErrorResponse errorResponse = new ErrorResponse(
@@ -29,7 +29,7 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse,HttpStatus.NOT_FOUND);
     }
 
-    /** Errores de negocio por datos inválidos que no cubre @Valid -> HTTP 400. */
+    // Errores de negocio por datos inválidos que no cubre @Valid -> HTTP 400.
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<ErrorResponse> handleBadRequestException(BadRequestException exception){
         ErrorResponse errorResponse = new ErrorResponse(
@@ -40,7 +40,7 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse,HttpStatus.BAD_REQUEST);
     }
 
-    /** Falla la comunicación con la API pública de categorías -> HTTP 503. */
+    // Falla la comunicación con la API pública de categorías -> HTTP 503.
     @ExceptionHandler(ExternalServiceException.class)
     public ResponseEntity<ErrorResponse> handleExternalServiceException(ExternalServiceException exception){
         ErrorResponse errorResponse = new ErrorResponse(
@@ -51,7 +51,7 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse,HttpStatus.SERVICE_UNAVAILABLE);
     }
 
-    /** Se dispara cuando un @RequestBody con @Valid no pasa sus validaciones -> HTTP 400. */
+    // Se lanza cuando un @RequestBody con @Valid no pasa sus validaciones -> HTTP 400.
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException exception){
 
@@ -64,7 +64,7 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
-    /** Se dispara con cualquier otra excepción no prevista -> HTTP 500. */
+    // Se dispara con cualquier otra excepción no prevista -> HTTP 500.
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleUnexpectedException(Exception exception) {

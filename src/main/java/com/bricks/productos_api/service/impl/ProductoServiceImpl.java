@@ -28,7 +28,7 @@ public class ProductoServiceImpl implements ProductoService {
     private ProductoRepository productoRepository;
 
     @Autowired
-    private CategoriaService categoriaService;
+    private CategoriaServiceImpl categoriaService;
 
     @Autowired
     private ProductoMapper productoMapper;
@@ -50,6 +50,10 @@ public class ProductoServiceImpl implements ProductoService {
     @Override
 // Solo acepta un filtro a la vez.
     public List<ProductoResponse> findAll(String name, Double price, Integer stock, Long categoryId) {
+
+        // Sincroniza las categorías desde la API externa
+        categoriaService.sincronizarCategorias();
+
         int cant = 0;
         if (name != null) cant++;
         if (price != null) cant++;

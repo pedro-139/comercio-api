@@ -60,7 +60,7 @@ public class CategoriaServiceImpl implements CategoriaService {
                 .orElseThrow(() -> new ResourceNotFoundException("Categoría con ID " + id + " no encontrada"));
     }
 
-    private void sincronizarCategorias() {
+    public void sincronizarCategorias() {
         try {
             List<Categoria> categoriasExternas = restClient
                     .get()

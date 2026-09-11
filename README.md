@@ -1,182 +1,63 @@
-# Productos API
+# API REST - Administración de Productos
 
-API REST de Productos y Categorías — Java / Spring Boot
-
-## Descripción
-
-Este proyecto implementa una API REST para la administración de productos y categorías de un comercio, desarrollada como parte del **Desafío Técnico de Java de Bricks**.
-
-Permite realizar operaciones CRUD sobre productos, consultar categorías, filtrar productos, validar los datos recibidos, manejar errores, usar caché e integrarse con una API externa para obtener categorías.
-
-## Características principales
-
-- CRUD completo de productos
-- Consulta de categorías
-- Integración con API externa (escuelajs)
-- Caché de resultados
-- Manejo global de errores
-- Tests unitarios (services)
-- Swagger UI (OpenAPI 3)
-- Arquitectura por capas
-
-## Tecnologías principales
-
-| Tecnología | Uso |
-|---|---|
-| Java 21 | Lenguaje principal |
-| Spring Boot | Framework principal |
-| Spring Web | Exposición de API REST |
-| Spring Data JPA | Persistencia |
-| H2 Database | Base en memoria |
-| Spring Cache | Cache de resultados |
-| Spring Validation | Validación de requests (Jakarta Bean Validation) |
-| springdoc-openapi | Swagger UI |
-| RestClient | Integración con API externa |
-| Gradle (Wrapper) | Build tool |
-| JUnit 5 + Mockito | Tests automatizados |
-
-## Objetivos del sistema
-
-**CRUD de productos**
-
-- Crear producto
-- Obtener producto por ID
-- Listar todos (con filtros)
-- Actualizar producto
-- Eliminar producto
-
-**Filtros disponibles en `/products`**
-
-- `name`
-- `price`
-- `stock`
-- `categoryId`
-
-La implementación actual admite un filtro por solicitud, no combinaciones de varios a la vez.
-
-**Categorías**
-
-- Listar todas
-- Sincronizar/obtener desde la API externa si no hay datos locales
-
-## Integración externa — escuelajs API
-
-Las categorías se obtienen desde la API pública:
-
-```
-https://api.escuelajs.co/api/v1/categories
-```
-
-Si no existen categorías guardadas localmente, la aplicación las sincroniza automáticamente desde este servicio al consultar `GET /categories`. Las categorías iniciales que trae `import.sql` corresponden a los primeros IDs disponibles del servicio externo (con más peso en Clothes, Electronics, Furniture y Shoes), para tener suficientes productos de prueba a la hora de probar los filtros por categoría.
-
-## Documentación
-
-Swagger UI, una vez levantada la app:
-
-```
-http://localhost:8080/swagger-ui/index.html
-```
-
-Especificación OpenAPI:
-
-```
-http://localhost:8080/v3/api-docs
-```
-
-## Caché
-
-La consulta de producto por ID usa caché:
-
-- `@Cacheable(value = "productosCache", key = "#id")` en la consulta por ID.
-- `@CacheEvict` cuando un producto se actualiza o elimina, para no dejar en caché información desactualizada.
-
-Se eligió aplicar la caché sobre la consulta por ID porque es la operación de lectura que más se repite en un flujo típico de uso.
-
-Para poder verificar a simple vista que la caché está funcionando, `findById` deja un `System.out.println` justo antes de ir a la base de datos: si se consulta el mismo ID dos veces, el mensaje solo aparece la primera vez (la segunda responde directo desde caché sin tocar el repository). Es intencional, pensado para que sea fácil de comprobar durante la evaluación.
-
-## Tests
-
-JUnit 5 + Mockito, sobre la capa de servicios:
-
-- `ProductoServiceImplTest`: creación, listado sin filtro, listado filtrando por nombre/precio/stock/categoría, búsqueda por ID (existente e inexistente), actualización (existente e inexistente) y eliminación (existente e inexistente).
-- `CategoriaServiceImplTest`: listado con datos, listado sincronizando cuando la base está vacía, búsqueda por ID (con dato, sincronizando si no existe, y 404 si tampoco aparece luego de sincronizar).
-
-Para ejecutar:
-
-```powershell
-.\gradlew.bat clean test
-```
+## Breve descripción de la solución
+API REST desarrollada en Java 21 con Spring Boot para la administración de productos y categorías de un comercio, como parte del Desafío Técnico de Java de Bricks. Permite operaciones CRUD completas sobre productos, filtrado por nombre, precio, stock o categoría, y se integra con la API pública`https://api.escuelajs.co/api/v1/categories`, sincronizando los datos localmente si no existen. Utiliza H2 como base de datos en memoria, Gradle como gestor de build, cache con Spring Cache sobre la consulta de producto por ID, manejo centralizado de errores con `@RestControllerAdvice`, documentación interactiva con Swagger UI y tests unitarios con JUnit 5 + Mockito sobre la capa de servicios.
 
 ## Requisitos para ejecutar el proyecto
+- Java 21.
+- Conexión a internet (necesaria para sincronizar las categorías desde la API externa de Escuelajs).
+- **Importante:** las categorías no se cargan solas al arrancar la app. Como `Producto` tiene una foreign key obligatoria hacia `categorias`, es necesario llamar una vez a `GET /categories` (desde Swagger o cualquier cliente) antes de crear productos o de cargar datos de prueba.
 
-- Java 21
-- Sistema operativo compatible con Java
-- Conexión a Internet, para la integración con la API externa de categorías
-
-No hace falta instalar Gradle (el proyecto incluye el **Gradle Wrapper**) ni una base de datos externa (se usa **H2 en memoria**).
-
-## Compilación y ejecución
-
-Desde la raíz del proyecto (Windows):
+## Instrucciones de compilación y ejecución
+Desde la raíz del proyecto:
 
 **Compilar**
-
-```powershell
-.\gradlew.bat build
-```
-
-Limpiar y recompilar:
-
-```powershell
-.\gradlew.bat clean build
+```bash
+./gradlew build # Linux/macOS
+gradlew.bat build # Windows
 ```
 
 **Ejecutar los tests**
-
-```powershell
-.\gradlew.bat test
+```bash
+./gradlew test          # Linux/macOS
+gradlew.bat test        # Windows
 ```
 
 **Ejecutar la aplicación**
-
-```powershell
-.\gradlew.bat bootRun
+```bash
+./gradlew bootRun       # Linux/macOS
+gradlew.bat bootRun     # Windows
 ```
 
-La aplicación queda disponible en:
+La aplicación queda disponible en `http://localhost:8080`.
 
-```
-http://localhost:8080
-```
-
-**Consola H2**
-
-Con la app corriendo:
-
-```
-http://localhost:8080/h2-console
-```
-
-La URL JDBC y las credenciales están en `src/main/resources/application.properties`.
+- **Swagger UI:** `http://localhost:8080/swagger-ui/index.html`
+- **Especificación OpenAPI:** `http://localhost:8080/v3/api-docs`
+- **Consola H2:** `http://localhost:8080/h2-console`
+  JDBC URL: `jdbc:h2:mem:productsdb` 
+- · Usuario: `sa` 
+- · Contraseña: (en blanco)
 
 ## Información necesaria para probar la API
+La app no carga datos de prueba en forma automática al arrancar. `src/main/resources/import.txt` contiene 30 inserts de productos de ejemplo (columnas `nombre`, `precio`, `stock`, `id_categoria`) pensados para pegarse manualmente en la consola H2 **después** de haber llamado `GET /categories` al menos una vez, ya que hacen referencia a los IDs de categoría 1 a 5.
 
-### Datos de prueba
-
-La app usa H2 en memoria, así que los datos se pierden al detener la aplicación. Se cargan automáticamente al iniciar mediante `src/main/resources/import.sql`, que trae 30 productos de prueba.
-
-### Endpoints — Productos
+**Endpoints — Productos**
 
 | Método | Endpoint | Descripción |
 |---|---|---|
-| GET | `/products` | Listar productos (con filtros opcionales) |
+| GET | `/products` | Listar productos (admite un filtro opcional a la vez) |
 | GET | `/products/{id}` | Obtener un producto por ID |
 | POST | `/products` | Crear un producto |
 | PUT | `/products/{id}` | Actualizar un producto |
 | DELETE | `/products/{id}` | Eliminar un producto |
 
-Filtros (uno por solicitud):
+**Endpoints — Categorías**
 
+| Método | Endpoint | Descripción |
+|---|---|---|
+| GET | `/categories` | Listar categorías (sincroniza desde Escuelajs si no hay datos locales) |
+
+**Filtros disponibles en `GET /products`** (uno por solicitud — enviar más de uno devuelve `400 Bad Request`):
 ```http
 GET /products?name=Mouse
 GET /products?price=25000
@@ -184,8 +65,7 @@ GET /products?stock=20
 GET /products?categoryId=2
 ```
 
-Crear producto:
-
+**Crear producto**
 ```json
 POST /products
 {
@@ -195,11 +75,9 @@ POST /products
   "categoryId": 2
 }
 ```
-
 Respuesta: `201 Created`.
 
-Actualizar producto:
-
+**Actualizar producto**
 ```json
 PUT /products/1
 {
@@ -209,123 +87,28 @@ PUT /products/1
   "categoryId": 2
 }
 ```
+Si no existe: `404 Not Found`. Eliminar responde `204 No Content`.
 
-Si el producto no existe: `404 Not Found`. Eliminar responde `204 No Content`.
+**Validaciones:** nombre obligatorio y no vacío, precio obligatorio y mayor a 0, stock obligatorio (mínimo 1), `categoryId` obligatorio. Un request inválido responde `400 Bad Request`.
 
-### Endpoints — Categorías
+**Códigos de error principales:** `400`, `404`, `503` (falla el servicio externo de categorías), `500`.
 
-| Método | Endpoint | Descripción |
-|---|---|---|
-| GET | `/categories` | Listar categorías (sincronizadas desde escuelajs si no hay datos locales) |
+**Flujo recomendado para probar (desde Swagger UI):**
+1. `GET /categories` — sincroniza y consulta las categorías (paso obligatorio antes de crear productos).
+2. *(Opcional)* Pegar el contenido de `import.txt` en la consola H2 (`http://localhost:8080/h2-console`) para cargar 30 productos de ejemplo, ya con las categorías disponibles.
+3. `GET /products` — ver los productos cargados.
+4. Probar filtros: `GET /products?categoryId=2`, `GET /products?name=Mouse Inalámbrico`.
+5. `GET /products/1` dos veces seguidas — la segunda vez no imprime el mensaje de acceso a base de datos en consola, lo que confirma que respondió desde cache.
+6. `POST /products` — crear uno nuevo.
+7. `PUT /products/{id}` — actualizarlo (invalida la cache de ese ID).
+8. `DELETE /products/{id}` — eliminarlo (invalida la cache de ese ID).
 
-### Validaciones
-
-Los requests de producto usan Jakarta Bean Validation:
-
-- Nombre obligatorio, no puede estar vacío.
-- Precio obligatorio y mayor a 0.
-- Stock obligatorio, mínimo 1.
-- `categoryId` obligatorio.
-
-Ejemplo de request inválido:
-
-```json
-{
-  "name": "",
-  "price": -100,
-  "stock": 0,
-  "categoryId": null
-}
-```
-
-Respuesta: `400 Bad Request`.
-
-### Manejo de errores
-
-Excepciones personalizadas (`ResourceNotFoundException`, `BadRequestException`, `ExternalServiceException`) centralizadas en `GlobalExceptionHandler` (`@RestControllerAdvice`), con una estructura de respuesta común (`ErrorResponse`).
-
-Códigos principales: `400`, `404`, `503`, `500`.
-
-### Flujo recomendado para probar
-
-1. `GET /products` — ver los productos cargados por `import.sql`.
-2. Probar filtros: `GET /products?categoryId=2`, `GET /products?name=Mouse`.
-3. `GET /products/1` — obtener un producto puntual, y repetir la consulta para ver la caché en acción (el segundo llamado no imprime el log de acceso a base de datos).
-4. `POST /products` — crear uno nuevo.
-5. `PUT /products/{id}` — actualizarlo.
-6. `DELETE /products/{id}` — eliminarlo.
-7. `GET /categories` — consultar categorías.
-
-Todo esto se puede hacer directamente desde Swagger UI.
-
-## Arquitectura
-
-```
-Controller
-    ↓
-Service
-    ↓
-Repository
-    ↓
-Model
-    ↓
-H2 Database
-```
-
-```
-src/
-├── main/
-│   ├── java/com/bricks/productos_api/
-│   │   ├── config/
-│   │   ├── controller/
-│   │   ├── dto/
-│   │   ├── model/
-│   │   ├── exception/
-│   │   ├── mapper/
-│   │   ├── repository/
-│   │   └── service/
-│   └── resources/
-│       ├── application.properties
-│       └── import.sql
-└── test/
-    └── java/
-```
-
-- **Controller**: recibe las solicitudes HTTP y delega en el Service, sin lógica de negocio.
-- **Service**: lógica de negocio (crear/actualizar productos, verificar categorías, aplicar filtros).
-- **Repository**: acceso a datos con Spring Data JPA.
-- **Model**: entidades `Producto` y `Categoria`, con relación ManyToOne de Producto hacia Categoria.
-- **DTO**: `ProductoRequest`, `ProductoResponse`, `CategoriaResponse`, para no exponer directamente las entidades JPA.
-- **Mapper**: conversión Entity ↔ DTO, separada de la lógica de negocio.
-- **Exception**: excepciones personalizadas y el `GlobalExceptionHandler`.
-
-## Decisiones técnicas principales
-
-- **Arquitectura por capas**: separa Controllers, Services, Repositories, Entities, DTOs, Mappers y Exceptions para mantener responsabilidades claras.
-- **DTOs separados**: evitan exponer directamente las entidades JPA y controlan qué información entra y sale de la API.
-- **H2 en memoria**: el desafío pide una base en memoria; permite ejecutar el proyecto sin instalar un motor externo.
-- **RestClient** para la integración con la API pública de categorías (escuelajs), la indicada en la consigna.
-- **Jakarta Bean Validation** para validar automáticamente los datos recibidos.
-- **`@RestControllerAdvice`** para centralizar el manejo de errores y no repetir lógica en cada Controller.
-- **Spring Cache** sobre la consulta de producto por ID, invalidada con `@CacheEvict` en update/delete.
-- **`import.sql`** con productos de prueba (con más peso en Clothes, Electronics, Furniture y Shoes) para poder probar los endpoints y filtros sin cargar todo a mano.
-
-## Estado del proyecto
-
-- API REST de productos y categorías
-- CRUD completo
-- Filtros de productos
-- Integración con API externa
-- Base de datos H2
-- Datos iniciales (`import.sql`)
-- DTOs Request/Response + Mappers
-- Validaciones
-- Manejo global de excepciones
-- Caché
-- Swagger / OpenAPI
-- Tests unitarios
-- Documentación
-
-## Autor
-
-Pedro Serrano — Desafío técnico de Java, Bricks.
+## Explicación de las principales decisiones técnicas
+- **Arquitectura por capas** (Controller → Service → Repository → Model): separa responsabilidades para facilitar mantenibilidad y testing.
+- **DTOs separados** (`ProductoRequest`, `ProductoResponse`, `CategoriaResponse`): evitan exponer directamente las entidades JPA y controlan qué información entra y sale de la API. La conversión Entity ↔ DTO se aisló en clases `Mapper` dedicadas.
+- **H2 en memoria** con `ddl-auto=create-drop`: recrea el esquema en cada arranque para que `import.sql` cargue los datos de prueba automáticamente, sin riesgo real de pérdida de datos porque la base es en memoria.
+- **Filtro único por solicitud:** se decidió aceptar un solo filtro (`name`, `price`, `stock` o `categoryId`) por request, devolviendo `400 Bad Request` si se envía más de uno, en lugar de combinarlos con una lógica AND/OR no especificada en la consigna o ignorar alguno en silencio.
+- **RestClient** para la integración con la API pública de categorías de Escuelajs, sincronizando automáticamente solo cuando no hay datos locales.
+- **Jakarta Bean Validation** para validar automáticamente los datos de entrada.
+- **`@RestControllerAdvice`** (`GlobalExceptionHandler`) para centralizar el manejo de excepciones personalizadas (`ResourceNotFoundException`, `BadRequestException`, `ExternalServiceException`) con una estructura de respuesta de error común.
+- **Spring Cache** sobre la consulta de producto por ID (`@Cacheable`), invalidada con `@CacheEvict` en `update` y `delete`, ya que es la operación de lectura más repetida en un flujo típico de uso.

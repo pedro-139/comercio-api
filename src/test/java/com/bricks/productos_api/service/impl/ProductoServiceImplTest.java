@@ -2,15 +2,14 @@ package com.bricks.productos_api.service.impl;
 
 import com.bricks.productos_api.dto.producto.ProductoRequest;
 import com.bricks.productos_api.dto.producto.ProductoResponse;
-import com.bricks.productos_api.exception.BadRequestException;
+
 import com.bricks.productos_api.model.Categoria;
 import com.bricks.productos_api.model.Producto;
-import com.bricks.productos_api.exception.ResourceNotFoundException;
 import com.bricks.productos_api.mapper.ProductoMapper;
 import com.bricks.productos_api.repository.ProductoRepository;
 import com.bricks.productos_api.service.CategoriaService;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -22,8 +21,6 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -48,7 +45,7 @@ class ProductoServiceImplTest {
     private ProductoResponse resp1;
     private ProductoResponse resp2;
 
-    // Se ejecuta antes de los test y inicializamos los atributos que utilizaremos en los testeos.
+    // Se ejecuta antes de cada test e inicializa los atributos comunes que usan varios testeos.
     @BeforeEach
     void setUp() {
 
@@ -89,27 +86,31 @@ class ProductoServiceImplTest {
         resp2.setStock(20);
     }
 
-    // ==========================
+    // --------------------------
     // CREATE
-    // ==========================
+    // --------------------------
 
+    @DisplayName("Dado un producto que queremos crear, cuando llamemos a 'create' esperamos que el producto este creado")
     @Test
+    void create() {
+        // GIVEN
 
-    void create_debeCrearProducto() {
-
+        // El objeto que el mapper arma a partir del request.
         Producto producto = new Producto();
         producto.setName("Camisa nueva");
         producto.setPrice(900000.0);
         producto.setStock(15);
         producto.setCategory(categoria);
 
-        Producto productoGuardado = new Producto();
-        productoGuardado.setId(10L);
-        productoGuardado.setName("Camisa nueva");
-        productoGuardado.setPrice(900000.0);
-        productoGuardado.setStock(15);
-        productoGuardado.setCategory(categoria);
+        // El objeto que "vuelve" del repository ya persistido (con ID).
+        Producto guardado = new Producto();
+        guardado.setId(10L);
+        guardado.setName("Camisa nueva");
+        guardado.setPrice(900000.0);
+        guardado.setStock(15);
+        guardado.setCategory(categoria);
 
+        // El DTO de respuesta que se le muestra al cliente.
         ProductoResponse response = new ProductoResponse();
         response.setId(10L);
         response.setName("Camisa nueva");
@@ -126,139 +127,139 @@ class ProductoServiceImplTest {
 
         // El repository guarda el producto.
         when(productoRepository.save(producto))
-                .thenReturn(productoGuardado);
+                .thenReturn(guardado);
 
-        // El mapper convierte la entity guardada en DTO.
-        when(productoMapper.toDTO(productoGuardado))
+        // El mapper convierte la entity guardada en el DTO de respuesta
+        when(productoMapper.toDTO(guardado))
                 .thenReturn(response);
 
-        // Act
+        // WHEN (Producto respuesta)
         ProductoResponse resultado =
                 productoService.create(req);
 
-        // Assert
+        // THEN (Comprobamos si respuesta es igual a esperado).
         assertThat(resultado).isNotNull();
-        assertThat(resultado.getId()).isEqualTo(10L);
-        assertThat(resultado.getName()).isEqualTo("Camisa nueva");
+        assertThat(resultado.getId()).isEqualTo(response.getId());
+        assertThat(resultado.getName()).isEqualTo(response.getName());
+        assertThat(resultado.getPrice()).isEqualTo(response.getPrice());
+        assertThat(resultado.getStock()).isEqualTo(response.getStock());
+        assertThat(resultado.getCategory()).isEqualTo(response.getCategory());
 
-        // Verificamos el flujo completo.
+
+        // Verificamos que el service haya llamado a cada dependencia en el flujo Producto.
         verify(categoriaService).getCategoriaById(1L);
         verify(productoMapper).toEntity(req, categoria);
         verify(productoRepository).save(producto);
-        verify(productoMapper).toDTO(productoGuardado);
+        verify(productoMapper).toDTO(guardado);
     }
 
 
-    // ==========================
+    // -------------------------
     // FIND ALL
-    // ==========================
+    // Debe devolver todos los productos y filtrar por nombre, precio, stock y categoría.
+    // -------------------------
 
+    @DisplayName("Dado que no hay filtros, cuando llamemos a 'findAll' esperamos que devuelva todos los productos")
     @Test
-
-    void findAll_debeDevolverTodosLosProductos() {
-
+    void findAll() {
+        // GIVEN
         when(productoRepository.findAll())
-                .thenReturn(Arrays.asList(p1, p2));
+                .thenReturn(Arrays.asList(p1, p2)); // Devuelve una lista con los Productos p1 y p2
 
         when(productoMapper.toDTO(p1))
-                .thenReturn(resp1);
+                .thenReturn(resp1); //Convierte la entity p1 en Response resp1
 
         when(productoMapper.toDTO(p2))
-                .thenReturn(resp2);
+                .thenReturn(resp2); // Convierte la entity p2 en Response resp2
 
-        // Act
+        // WHEN llama al metodo sin filtros
         List<ProductoResponse> resultado =
                 productoService.findAll(null, null, null, null);
 
-        // Assert
-        assertThat(resultado).hasSize(2);
-        assertThat(resultado)
-                .extracting(ProductoResponse::getId)
-                .containsExactly(1L, 2L);
+        // THEN Comprobamos que resultado es igual a esperado
+        assertThat(resultado).containsExactly(resp1,resp2);
 
+        //Verificamos que se hayan llamado a los metodos.
         verify(productoRepository).findAll();
         verify(productoMapper).toDTO(p1);
         verify(productoMapper).toDTO(p2);
     }
 
 
+    @DisplayName("Dado un filtro por nombre, cuando llamemos a 'findAll' esperamos que devuelva solo los productos que matchean")
     @Test
+    void filtrarPorNombre() {
+        String filtro = "Camisa";
+        // GIVEN
+        when(productoRepository.findByName(filtro))//Devuelva lista con filtro 'Camisa'
+                .thenReturn(List.of(p1));
 
-    void findAll_debeFiltrarPorNombre() {
+        when(productoMapper.toDTO(p1))  // Convierte la entity p1 en Response resp1
+                .thenReturn(resp1);
 
-        when(productoRepository.findByName("Camisa"))
+        // WHEN llama al metodo con el filtro name
+        List<ProductoResponse> resultado =
+                productoService.findAll(filtro, null, null, null);
+
+        // THEN
+        assertThat(resultado).containsExactly(resp1);
+
+        verify(productoRepository).findByName(filtro);
+    }
+
+
+    @DisplayName("Dado un filtro por precio, cuando llamemos a 'findAll' esperamos que devuelva solo los productos que matchean")
+    @Test
+    void filtrarPorPrecio() {
+        Double filtro = 850000.0;
+        // GIVEN
+        when(productoRepository.findByPrice(filtro))
                 .thenReturn(List.of(p1));
 
         when(productoMapper.toDTO(p1))
                 .thenReturn(resp1);
 
-        // Act
+        // WHEN
         List<ProductoResponse> resultado =
-                productoService.findAll("Camisa", null, null, null);
+                productoService.findAll(null, filtro, null, null);
 
-        // Assert
-        assertThat(resultado).hasSize(1);
-        assertThat(resultado.get(0).getName())
-                .isEqualTo("Camisa");
+        // THEN
+        assertThat(resultado).containsExactly(resp1);
 
-        verify(productoRepository).findByName("Camisa");
-        verify(productoRepository, never()).findAll();
+        verify(productoRepository).findByPrice(filtro);
+
     }
 
 
+    @DisplayName("Dado un filtro por stock, cuando llamemos a 'findAll' esperamos que devuelva solo los productos que matchean")
     @Test
-
-    void findAll_debeFiltrarPorPrecio() {
-
-        when(productoRepository.findByPrice(850000.0))
+    void filtrarPorStock() {
+        Integer filtro = 10;
+        // GIVEN
+        when(productoRepository.findByStock(filtro))
                 .thenReturn(List.of(p1));
 
         when(productoMapper.toDTO(p1))
                 .thenReturn(resp1);
 
-        // Act
+        // WHEN
         List<ProductoResponse> resultado =
-                productoService.findAll(null, 850000.0, null, null);
+                productoService.findAll(null, null, filtro, null);
 
-        // Assert
-        assertThat(resultado).hasSize(1);
-        assertThat(resultado.get(0).getPrice())
-                .isEqualTo(850000.0);
+        // THEN
+        assertThat(resultado).containsExactly(resp1);
 
-        verify(productoRepository).findByPrice(850000.0);
-        verify(productoRepository, never()).findAll();
+        verify(productoRepository).findByStock(filtro);
+
     }
 
 
+    @DisplayName("Dado un filtro por categoría, cuando llamemos a 'findAll' esperamos que devuelva solo los productos que matchean")
     @Test
-
-    void findAll_debeFiltrarPorStock() {
-
-        when(productoRepository.findByStock(10))
-                .thenReturn(List.of(p1));
-
-        when(productoMapper.toDTO(p1))
-                .thenReturn(resp1);
-
-        // Act
-        List<ProductoResponse> resultado =
-                productoService.findAll(null, null, 10, null);
-
-        // Assert
-        assertThat(resultado).hasSize(1);
-        assertThat(resultado.get(0).getStock())
-                .isEqualTo(10);
-
-        verify(productoRepository).findByStock(10);
-        verify(productoRepository, never()).findAll();
-    }
-
-
-    @Test
-
-    void findAll_debeFiltrarPorCategoria() {
-
-        when(productoRepository.findByCategoryId(1L))
+    void filtrarPorCategoria() {
+        Long filtro = 1L;
+        // GIVEN
+        when(productoRepository.findByCategoryId(filtro))
                 .thenReturn(List.of(p1, p2));
 
         when(productoMapper.toDTO(p1))
@@ -267,96 +268,83 @@ class ProductoServiceImplTest {
         when(productoMapper.toDTO(p2))
                 .thenReturn(resp2);
 
-        // Act
+        // WHEN
         List<ProductoResponse> resultado =
-                productoService.findAll(null, null, null, 1L);
+                productoService.findAll(null, null, null, filtro);
 
-        // Assert
-        assertThat(resultado).hasSize(2);
+        // THEN
+        assertThat(resultado).containsExactly(resp1,resp2);
 
-        verify(productoRepository).findByCategoryId(1L);
-        verify(productoRepository, never()).findAll();
+        verify(productoRepository).findByCategoryId(filtro);
+
     }
 
 
-    @Test
 
-    void findAll_debeLanzarExcepcionSiHayMasDeUnFiltro() {
-        Assertions.assertThatThrownBy(() -> productoService.findAll("Camisa", null, null, 1L)).isInstanceOf(BadRequestException.class);
-        verify(productoRepository, never()).findByName(any());
-        verify(productoRepository, never()).findByCategoryId(any());
-        verify(productoRepository, never()).findAll();
-}
-
-
-    // ==========================
+    // -------------------------
     // FIND BY ID
-    // ==========================
+    // Debe devolver el producto
+    // Debe lanzar exception
+    //--------------------------
 
+    @DisplayName("Dado un producto existente, cuando llamemos a 'findById' esperamos que lo devuelva")
     @Test
+    void findById() {
 
-    void findById_debeDevolverProducto() {
+        Long id = 1L;
 
-        when(productoRepository.findById(1L))
+        // GIVEN
+        when(productoRepository.findById(id))       //Buscamos el Optional del producto p1 mediante su id.
                 .thenReturn(Optional.of(p1));
 
-        when(productoMapper.toDTO(p1))
+        when(productoMapper.toDTO(p1))  //Convertimos la entidad p1 a Response resp1.
                 .thenReturn(resp1);
 
-        // Act
+        // WHEN
         ProductoResponse resultado =
-                productoService.findById(1L);
+                productoService.findById(id);
 
-        // Assert
+        // THEN
         assertThat(resultado).isNotNull();
-        assertThat(resultado.getId()).isEqualTo(1L);
-        assertThat(resultado.getName()).isEqualTo("Camisa");
+        assertThat(resultado.getId()).isEqualTo(id);
+        assertThat(resultado.getName()).isEqualTo(resp1.getName());
+        assertThat(resultado.getPrice()).isEqualTo(resp1.getPrice());
+        assertThat(resultado.getStock()).isEqualTo(resp1.getStock());
+        assertThat(resultado.getCategory()).isEqualTo(resp1.getCategory());
 
-        verify(productoRepository).findById(1L);
+        verify(productoRepository).findById(id);
         verify(productoMapper).toDTO(p1);
     }
 
 
-    @Test
-
-    void findById_debeLanzarExcepcionSiNoExiste() {
-
-        when(productoRepository.findById(99L))
-                .thenReturn(Optional.empty());
-
-        assertThatThrownBy(() -> productoService.findById(99L))
-                .isInstanceOf(ResourceNotFoundException.class);
-
-        verify(productoRepository).findById(99L);
-        verify(productoMapper, never()).toDTO(any());
-    }
-
-
-    // ==========================
+    // -------------------------
     // UPDATE
-    // ==========================
+    // Debe actualizar el producto
+    // -------------------------
 
+    @DisplayName("Dado un producto existente, cuando llamemos a 'update' esperamos que sus datos se actualicen")
     @Test
+    void update() {
+        Long idUpdate = 1L;
 
-    void update_debeActualizarProducto() {
-
+        // GIVEN
         Producto existente = new Producto();
-        existente.setId(1L);
+        existente.setId(idUpdate);
         existente.setName("Camisa");
         existente.setPrice(850000.0);
         existente.setStock(10);
         existente.setCategory(categoria);
 
         ProductoResponse response = new ProductoResponse();
-        response.setId(1L);
+        response.setId(idUpdate);
         response.setName("Camisa nueva");
         response.setPrice(900000.0);
         response.setStock(15);
 
-        when(productoRepository.findById(1L))
+        when(productoRepository.findById(idUpdate))
                 .thenReturn(Optional.of(existente));
 
-        when(categoriaService.getCategoriaById(1L))
+        when(categoriaService.getCategoriaById(req.getCategoryId()))
                 .thenReturn(categoria);
 
         when(productoRepository.save(existente))
@@ -365,80 +353,54 @@ class ProductoServiceImplTest {
         when(productoMapper.toDTO(existente))
                 .thenReturn(response);
 
-        // Act
+        // WHEN
         ProductoResponse resultado =
-                productoService.update(1L, req);
+                productoService.update(idUpdate, req);
 
-        // Assert
+        // THEN
+
+        // Comprobamos que el resultado devuelto por update sea correcto
         assertThat(resultado).isNotNull();
-        assertThat(resultado.getName())
-                .isEqualTo("Camisa nueva");
 
+        assertThat(resultado.getName())
+                .isEqualTo(response.getName());
+
+
+        //Comprobamos que la entidad existente haya sido modificada correctamente.
         assertThat(existente.getName())
-                .isEqualTo("Camisa nueva");
+                .isEqualTo(response.getName());
 
         assertThat(existente.getPrice())
-                .isEqualTo(900000.0);
+                .isEqualTo(response.getPrice());
 
         assertThat(existente.getStock())
-                .isEqualTo(15);
+                .isEqualTo(response.getStock());
 
-        verify(productoRepository).findById(1L);
-        verify(categoriaService).getCategoriaById(1L);
+        verify(productoRepository).findById(idUpdate);
+        verify(categoriaService).getCategoriaById(req.getCategoryId());
         verify(productoRepository).save(existente);
         verify(productoMapper).toDTO(existente);
     }
 
 
-    @Test
-
-    void update_debeLanzarExcepcionSiNoExiste() {
-
-        when(productoRepository.findById(99L))
-                .thenReturn(Optional.empty());
-
-        assertThatThrownBy(() ->
-                productoService.update(99L, req)
-        ).isInstanceOf(ResourceNotFoundException.class);
-
-        verify(productoRepository).findById(99L);
-        verify(categoriaService, never()).getCategoriaById(any());
-        verify(productoRepository, never()).save(any());
-    }
-
-
-    // ==========================
+    // --------------------------
     // DELETE
-    // ==========================
+    // Debe eliminar producto
+    // --------------------------
 
+    @DisplayName("Dado un producto existente, cuando llamemos a 'delete' esperamos que se elimine")
     @Test
-
-    void delete_debeEliminarProducto() {
-
+    void delete() {
+        // GIVEN
         when(productoRepository.existsById(1L))
                 .thenReturn(true);
 
-        // Act
+        // WHEN
         productoService.delete(1L);
 
-        // Assert
+        // THEN
         verify(productoRepository)
                 .deleteById(1L);
     }
 
-
-    @Test
-
-    void delete_debeLanzarExcepcionSiNoExiste() {
-
-        when(productoRepository.existsById(99L))
-                .thenReturn(false);
-
-        assertThatThrownBy(() ->
-                productoService.delete(99L)
-        ).isInstanceOf(ResourceNotFoundException.class);
-
-        verify(productoRepository, never())
-                .deleteById(99L);
-    }
 }

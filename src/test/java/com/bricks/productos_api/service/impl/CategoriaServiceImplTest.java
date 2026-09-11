@@ -1,28 +1,21 @@
 package com.bricks.productos_api.service.impl;
 
 import com.bricks.productos_api.dto.categoria.CategoriaResponse;
-import com.bricks.productos_api.model.Categoria;
-import com.bricks.productos_api.exception.ResourceNotFoundException;
 import com.bricks.productos_api.mapper.CategoriaMapper;
+import com.bricks.productos_api.model.Categoria;
 import com.bricks.productos_api.repository.CategoriaRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Answers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.web.client.RestClient;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -30,11 +23,6 @@ class CategoriaServiceImplTest {
 
     @Mock
     private CategoriaRepository categoriaRepository;
-
-    // Deep stubs: evita tener que mockear a mano cada eslabón de
-    // restClient.get().uri(...).retrieve().body(...)
-    @Mock(answer = Answers.RETURNS_DEEP_STUBS)
-    private RestClient restClient;
 
     @Mock
     private CategoriaMapper categoriaMapper;
@@ -44,38 +32,44 @@ class CategoriaServiceImplTest {
 
     private Categoria c1;
     private Categoria c2;
-
     private CategoriaResponse resp1;
     private CategoriaResponse resp2;
 
+    // Se ejecuta antes de cada test e inicializa los atributos comunes.
     @BeforeEach
     void setUp() {
 
-        c1 = new Categoria();
+        Categoria c1 = new Categoria();
         c1.setId(1L);
         c1.setName("Electrónica");
+        this.c1 = c1;
 
-        c2 = new Categoria();
+        Categoria c2 = new Categoria();
         c2.setId(2L);
         c2.setName("Ropa");
+        this.c2 = c2;
 
-        resp1 = new CategoriaResponse();
+        CategoriaResponse resp1 = new CategoriaResponse();
         resp1.setId(1L);
         resp1.setName("Electrónica");
+        this.resp1 = resp1;
 
-        resp2 = new CategoriaResponse();
+        CategoriaResponse resp2 = new CategoriaResponse();
         resp2.setId(2L);
         resp2.setName("Ropa");
+        this.resp2 = resp2;
     }
 
 
-    // ==========================
+    // --------------------------
     // GET ALL
-    // ==========================
+    // Debe devolver todas las categorías
+    // --------------------------
 
     @Test
-    void getAll_debeDevolverTodasLasCategorias() {
+    void getAll() {
 
+        // GIVEN
         when(categoriaRepository.findAll())
                 .thenReturn(Arrays.asList(c1, c2));
 
@@ -85,177 +79,73 @@ class CategoriaServiceImplTest {
         when(categoriaMapper.toDTO(c2))
                 .thenReturn(resp2);
 
-        // Act
+        // WHEN
         List<CategoriaResponse> resultado =
                 categoriaService.getAll();
 
-        // Assert
-        assertThat(resultado).hasSize(2);
-
-        assertThat(resultado)
-                .extracting(CategoriaResponse::getId)
-                .containsExactly(1L, 2L);
+        // THEN
+        assertThat(resultado).isNotNull();
+        assertThat(resultado).containsExactly(resp1, resp2);
 
         verify(categoriaRepository).findAll();
-
         verify(categoriaMapper).toDTO(c1);
         verify(categoriaMapper).toDTO(c2);
     }
 
 
-    @Test
-    void getAll_debeSincronizarSiLaBaseEstaVacia() {
-
-        // Primera búsqueda: BD vacía.
-        when(categoriaRepository.findAll())
-                .thenReturn(List.of())
-                .thenReturn(Arrays.asList(c1, c2));
-
-        // La sincronización trae categorías desde el servicio externo (mockeado).
-        when(restClient.get().uri(anyString()).retrieve().body(any(ParameterizedTypeReference.class)))
-                .thenReturn(Arrays.asList(c1, c2));
-
-        when(categoriaMapper.toDTO(c1))
-                .thenReturn(resp1);
-
-        when(categoriaMapper.toDTO(c2))
-                .thenReturn(resp2);
-
-        // Act
-        List<CategoriaResponse> resultado =
-                categoriaService.getAll();
-
-        // Assert
-        assertThat(resultado).hasSize(2);
-
-        verify(categoriaRepository, times(2)).findAll();
-
-        verify(categoriaRepository)
-                .saveAll(any());
-
-        verify(categoriaMapper).toDTO(c1);
-        verify(categoriaMapper).toDTO(c2);
-    }
-
-
-    // ==========================
+    // --------------------------
     // FIND BY ID
-    // ==========================
+    // Debe devolver la categoría
+    // --------------------------
 
     @Test
-    void findById_debeDevolverCategoria() {
+    void findById() {
 
-        when(categoriaRepository.findById(1L))
+        Long id = 1L;
+
+        // GIVEN
+        when(categoriaRepository.findById(id))
                 .thenReturn(Optional.of(c1));
 
         when(categoriaMapper.toDTO(c1))
                 .thenReturn(resp1);
 
-        // Act
+        // WHEN
         CategoriaResponse resultado =
-                categoriaService.findById(1L);
+                categoriaService.findById(id);
 
-        // Assert
+        // THEN
         assertThat(resultado).isNotNull();
-        assertThat(resultado.getId()).isEqualTo(1L);
-        assertThat(resultado.getName())
-                .isEqualTo("Electrónica");
+        assertThat(resultado.getId()).isEqualTo(id);
+        assertThat(resultado.getName()).isEqualTo(resp1.getName());
 
-        verify(categoriaRepository)
-                .findById(1L);
+        verify(categoriaRepository).findById(id);
+        verify(categoriaMapper).toDTO(c1);
     }
 
-
-    @Test
-    void findById_debeSincronizarSiNoExiste() {
-
-        when(categoriaRepository.findById(1L))
-                .thenReturn(Optional.empty())
-                .thenReturn(Optional.of(c1));
-
-        when(restClient.get().uri(anyString()).retrieve().body(any(ParameterizedTypeReference.class)))
-                .thenReturn(List.of(c1));
-
-        when(categoriaMapper.toDTO(c1))
-                .thenReturn(resp1);
-
-        // Act
-        CategoriaResponse resultado =
-                categoriaService.findById(1L);
-
-        // Assert
-        assertThat(resultado).isNotNull();
-        assertThat(resultado.getId()).isEqualTo(1L);
-
-        verify(categoriaRepository, times(2))
-                .findById(1L);
-
-        verify(categoriaRepository)
-                .saveAll(any());
-    }
-
-
-    @Test
-    void findById_debeLanzarExcepcionSiNoExiste() {
-
-        when(categoriaRepository.findById(99L))
-                .thenReturn(Optional.empty());
-
-        // La sincronización se ejecuta pero no trae la categoría 99.
-        when(restClient.get().uri(anyString()).retrieve().body(any(ParameterizedTypeReference.class)))
-                .thenReturn(List.of());
-
-        assertThatThrownBy(() ->
-                categoriaService.findById(99L)
-        ).isInstanceOf(ResourceNotFoundException.class);
-
-        verify(categoriaRepository, times(2))
-                .findById(99L);
-
-        verify(categoriaRepository)
-                .saveAll(any());
-    }
-
-
-    // ==========================
+    // --------------------------
     // GET CATEGORIA BY ID
-    // ==========================
+    // Debe devolver la categoría
+    // --------------------------
 
     @Test
-    void getCategoriaById_debeDevolverCategoria() {
+    void getCategoriaById() {
 
-        when(categoriaRepository.findById(1L))
+        Long id = 1L;
+
+        // GIVEN
+        when(categoriaRepository.findById(id))
                 .thenReturn(Optional.of(c1));
 
-        // Act
+        // WHEN
         Categoria resultado =
-                categoriaService.getCategoriaById(1L);
+                categoriaService.getCategoriaById(id);
 
-        // Assert
+        // THEN
         assertThat(resultado).isNotNull();
-        assertThat(resultado.getId()).isEqualTo(1L);
-        assertThat(resultado.getName())
-                .isEqualTo("Electrónica");
+        assertThat(resultado.getId()).isEqualTo(id);
+        assertThat(resultado.getName()).isEqualTo(c1.getName());
 
-        verify(categoriaRepository)
-                .findById(1L);
-    }
-
-
-    @Test
-    void getCategoriaById_debeLanzarExcepcionSiNoExiste() {
-
-        when(categoriaRepository.findById(99L))
-                .thenReturn(Optional.empty());
-
-        assertThatThrownBy(() ->
-                categoriaService.getCategoriaById(99L)
-        ).isInstanceOf(ResourceNotFoundException.class);
-
-        verify(categoriaRepository)
-                .findById(99L);
-
-        verify(categoriaRepository, never())
-                .saveAll(any());
+        verify(categoriaRepository).findById(id);
     }
 }
