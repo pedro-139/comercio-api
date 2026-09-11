@@ -2,12 +2,14 @@ package com.bricks.productos_api.service.impl;
 
 import com.bricks.productos_api.dto.producto.ProductoRequest;
 import com.bricks.productos_api.dto.producto.ProductoResponse;
+import com.bricks.productos_api.exception.BadRequestException;
 import com.bricks.productos_api.model.Categoria;
 import com.bricks.productos_api.model.Producto;
 import com.bricks.productos_api.exception.ResourceNotFoundException;
 import com.bricks.productos_api.mapper.ProductoMapper;
 import com.bricks.productos_api.repository.ProductoRepository;
 import com.bricks.productos_api.service.CategoriaService;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -275,6 +277,16 @@ class ProductoServiceImplTest {
         verify(productoRepository).findByCategoryId(1L);
         verify(productoRepository, never()).findAll();
     }
+
+
+    @Test
+
+    void findAll_debeLanzarExcepcionSiHayMasDeUnFiltro() {
+        Assertions.assertThatThrownBy(() -> productoService.findAll("Camisa", null, null, 1L)).isInstanceOf(BadRequestException.class);
+        verify(productoRepository, never()).findByName(any());
+        verify(productoRepository, never()).findByCategoryId(any());
+        verify(productoRepository, never()).findAll();
+}
 
 
     // ==========================

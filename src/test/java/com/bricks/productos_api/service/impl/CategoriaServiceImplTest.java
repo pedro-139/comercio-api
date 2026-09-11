@@ -8,9 +8,11 @@ import com.bricks.productos_api.repository.CategoriaRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Answers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.web.client.RestClient;
 
 import java.util.Arrays;
@@ -20,6 +22,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -28,7 +31,9 @@ class CategoriaServiceImplTest {
     @Mock
     private CategoriaRepository categoriaRepository;
 
-    @Mock
+    // Deep stubs: evita tener que mockear a mano cada eslabón de
+    // restClient.get().uri(...).retrieve().body(...)
+    @Mock(answer = Answers.RETURNS_DEEP_STUBS)
     private RestClient restClient;
 
     @Mock
@@ -106,6 +111,16 @@ class CategoriaServiceImplTest {
                 .thenReturn(List.of())
                 .thenReturn(Arrays.asList(c1, c2));
 
+        // La sincronización trae categorías desde el servicio externo (mockeado).
+        when(restClient.get().uri(anyString()).retrieve().body(any(ParameterizedTypeReference.class)))
+                .thenReturn(Arrays.asList(c1, c2));
+
+        when(categoriaMapper.toDTO(c1))
+                .thenReturn(resp1);
+
+        when(categoriaMapper.toDTO(c2))
+                .thenReturn(resp2);
+
         // Act
         List<CategoriaResponse> resultado =
                 categoriaService.getAll();
@@ -133,6 +148,9 @@ class CategoriaServiceImplTest {
         when(categoriaRepository.findById(1L))
                 .thenReturn(Optional.of(c1));
 
+        when(categoriaMapper.toDTO(c1))
+                .thenReturn(resp1);
+
         // Act
         CategoriaResponse resultado =
                 categoriaService.findById(1L);
@@ -155,6 +173,12 @@ class CategoriaServiceImplTest {
                 .thenReturn(Optional.empty())
                 .thenReturn(Optional.of(c1));
 
+        when(restClient.get().uri(anyString()).retrieve().body(any(ParameterizedTypeReference.class)))
+                .thenReturn(List.of(c1));
+
+        when(categoriaMapper.toDTO(c1))
+                .thenReturn(resp1);
+
         // Act
         CategoriaResponse resultado =
                 categoriaService.findById(1L);
@@ -176,6 +200,10 @@ class CategoriaServiceImplTest {
 
         when(categoriaRepository.findById(99L))
                 .thenReturn(Optional.empty());
+
+        // La sincronización se ejecuta pero no trae la categoría 99.
+        when(restClient.get().uri(anyString()).retrieve().body(any(ParameterizedTypeReference.class)))
+                .thenReturn(List.of());
 
         assertThatThrownBy(() ->
                 categoriaService.findById(99L)

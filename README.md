@@ -1,325 +1,193 @@
 # Productos API
 
-API REST desarrollada con **Java 21 y Spring Boot** para la administración de productos y categorías de un comercio.
+API REST de Productos y Categorías — Java / Spring Boot
 
-El proyecto fue desarrollado como parte del **Desafío Técnico de Java de Bricks**.
+## Descripción
 
-La aplicación permite realizar operaciones CRUD sobre productos, consultar categorías, filtrar productos, validar los datos recibidos, manejar errores y utilizar una integración con una API externa para obtener categorías.
+Este proyecto implementa una API REST para la administración de productos y categorías de un comercio, desarrollada como parte del **Desafío Técnico de Java de Bricks**.
 
----
+Permite realizar operaciones CRUD sobre productos, consultar categorías, filtrar productos, validar los datos recibidos, manejar errores, usar caché e integrarse con una API externa para obtener categorías.
 
-## Tecnologías
+## Características principales
 
-* **Java 21**
-* **Spring Boot**
-* **Spring Web**
-* **Spring Data JPA**
-* **H2 Database**
-* **Spring Validation**
-* **Spring Cache**
-* **RestClient**
-* **Swagger / OpenAPI**
-* **JUnit 5**
-* **Mockito**
-* **Gradle**
+- CRUD completo de productos
+- Consulta de categorías
+- Integración con API externa (escuelajs)
+- Caché de resultados
+- Manejo global de errores
+- Tests unitarios (services)
+- Swagger UI (OpenAPI 3)
+- Arquitectura por capas
 
----
+## Tecnologías principales
 
-## Funcionalidades
+| Tecnología | Uso |
+|---|---|
+| Java 21 | Lenguaje principal |
+| Spring Boot | Framework principal |
+| Spring Web | Exposición de API REST |
+| Spring Data JPA | Persistencia |
+| H2 Database | Base en memoria |
+| Spring Cache | Cache de resultados |
+| Spring Validation | Validación de requests (Jakarta Bean Validation) |
+| springdoc-openapi | Swagger UI |
+| RestClient | Integración con API externa |
+| Gradle (Wrapper) | Build tool |
+| JUnit 5 + Mockito | Tests automatizados |
 
-La API permite:
+## Objetivos del sistema
 
-* Crear productos.
-* Consultar todos los productos.
-* Consultar un producto por ID.
-* Actualizar productos.
-* Eliminar productos.
-* Filtrar productos por nombre, precio, stock o categoría.
-* Consultar categorías.
-* Integrarse con una API externa de categorías.
-* Validar los datos recibidos.
-* Manejar errores mediante excepciones personalizadas.
-* Utilizar caché para consultas de productos.
-* Documentar y probar la API mediante Swagger UI.
-* Ejecutar tests unitarios.
+**CRUD de productos**
 
----
+- Crear producto
+- Obtener producto por ID
+- Listar todos (con filtros)
+- Actualizar producto
+- Eliminar producto
 
-# Arquitectura
+**Filtros disponibles en `/products`**
 
-El proyecto utiliza una **arquitectura por capas**, separando las responsabilidades principales:
+- `name`
+- `price`
+- `stock`
+- `categoryId`
 
-```text
-Controller
-    ↓
-Service
-    ↓
-Repository
-    ↓
-Entity
-    ↓
-H2 Database
+La implementación actual admite un filtro por solicitud, no combinaciones de varios a la vez.
+
+**Categorías**
+
+- Listar todas
+- Sincronizar/obtener desde la API externa si no hay datos locales
+
+## Integración externa — escuelajs API
+
+Las categorías se obtienen desde la API pública:
+
 ```
-
-Además, se utilizan DTOs, Mappers, manejo global de excepciones e integración con servicios externos.
-
-### Estructura
-
-```text
-src/
-├── main/
-│   ├── java/com/bricks/productos_api/
-│   │   ├── config/
-│   │   ├── controller/
-│   │   ├── dto/
-│   │   ├── entity/
-│   │   ├── exception/
-│   │   ├── mapper/
-│   │   ├── repository/
-│   │   └── service/
-│   │
-│   └── resources/
-│       ├── application.properties
-│       └── import.sql
-│
-└── test/
-    └── java/
-```
-
-### Controller
-
-Recibe las solicitudes HTTP, obtiene los parámetros necesarios y delega la lógica en la capa `Service`.
-
-No contiene la lógica principal del negocio.
-
-### Service
-
-Contiene la lógica de negocio de la aplicación.
-
-Se encarga, entre otras cosas, de:
-
-* Crear y actualizar productos.
-* Verificar la existencia de categorías.
-* Buscar productos.
-* Aplicar filtros.
-* Manejar excepciones de negocio.
-* Coordinar los repositorios y otros servicios.
-
-### Repository
-
-Utiliza **Spring Data JPA** para acceder a la base de datos.
-
-Los repositorios se encargan de operaciones como:
-
-* Buscar.
-* Guardar.
-* Actualizar.
-* Eliminar.
-
-### Entity
-
-Representan las tablas de la base de datos.
-
-Las principales entidades son:
-
-* `Producto`
-* `Categoria`
-
-Un producto posee una relación `ManyToOne` con una categoría.
-
-### DTO
-
-Los DTOs definen los datos que entran y salen de la API.
-
-Se utilizan:
-
-* `ProductoRequest`: datos necesarios para crear o actualizar un producto.
-* `ProductoResponse`: información devuelta al consultar un producto.
-* `CategoriaResponse`: información devuelta sobre una categoría.
-
-Esto evita exponer directamente las entidades JPA.
-
-### Mapper
-
-Los Mappers se encargan de transformar:
-
-```text
-Entity → DTO
-DTO → Entity
-```
-
-De esta forma, la conversión de objetos queda separada de la lógica de negocio.
-
-### Exception
-
-Contiene las excepciones personalizadas y el `GlobalExceptionHandler`.
-
-Permite centralizar el manejo de errores y devolver respuestas HTTP adecuadas.
-
----
-
-# Base de datos
-
-La aplicación utiliza **H2 como base de datos en memoria**.
-
-Esto significa que:
-
-* No es necesario instalar un motor de base de datos externo.
-* Las tablas son creadas automáticamente mediante JPA.
-* Los datos se pierden al detener la aplicación.
-
-Para facilitar las pruebas, el proyecto incluye:
-
-```text
-src/main/resources/import.sql
-```
-
-Este archivo contiene datos iniciales de categorías y productos.
-
-Al iniciar la aplicación, H2 carga automáticamente estos datos, permitiendo comenzar a utilizar los endpoints inmediatamente desde Swagger, Postman o cualquier otro cliente HTTP.
-
----
-
-# Datos iniciales
-
-El archivo `import.sql` contiene categorías y **30 productos de prueba**.
-
-Los productos están distribuidos principalmente entre las categorías:
-
-```text
-1 - Clothes
-2 - Electronics
-3 - Furniture
-4 - Shoes
-5 - Miscellaneous
-```
-
-Se da mayor importancia a las primeras categorías, especialmente `Clothes`, `Electronics`, `Furniture` y `Shoes`, para que los filtros por categoría puedan probarse con una cantidad suficiente de productos.
-
-Los datos iniciales son únicamente datos de prueba y pueden modificarse o eliminarse mediante los endpoints correspondientes.
-
----
-
-# Integración con API externa
-
-Las categorías del proyecto se basan en la API pública de EscuelaJS:
-
-```text
 https://api.escuelajs.co/api/v1/categories
 ```
 
-La aplicación utiliza `RestClient` para comunicarse con este servicio.
+Si no existen categorías guardadas localmente, la aplicación las sincroniza automáticamente desde este servicio al consultar `GET /categories`. Las categorías iniciales que trae `import.sql` corresponden a los primeros IDs disponibles del servicio externo (con más peso en Clothes, Electronics, Furniture y Shoes), para tener suficientes productos de prueba a la hora de probar los filtros por categoría.
 
-La integración permite obtener información de categorías externas y utilizar sus identificadores dentro de la aplicación.
+## Documentación
 
-Las categorías iniciales utilizadas por `import.sql` corresponden a los primeros IDs disponibles del servicio externo, permitiendo que los productos de prueba mantengan una relación válida con sus categorías.
+Swagger UI, una vez levantada la app:
 
----
-
-# Swagger / OpenAPI
-
-La API cuenta con documentación interactiva mediante Swagger UI.
-
-Una vez iniciada la aplicación:
-
-```text
+```
 http://localhost:8080/swagger-ui/index.html
 ```
 
-Desde Swagger se pueden:
+Especificación OpenAPI:
 
-* Consultar los endpoints.
-* Ver los modelos de request y response.
-* Ejecutar solicitudes HTTP.
-* Probar filtros.
-* Probar validaciones y respuestas de error.
-
-La especificación OpenAPI también está disponible en:
-
-```text
+```
 http://localhost:8080/v3/api-docs
 ```
 
----
+## Caché
 
-# Endpoints
+La consulta de producto por ID usa caché:
 
-## Productos
+- `@Cacheable(value = "productosCache", key = "#id")` en la consulta por ID.
+- `@CacheEvict` cuando un producto se actualiza o elimina, para no dejar en caché información desactualizada.
 
-### Listar productos
+Se eligió aplicar la caché sobre la consulta por ID porque es la operación de lectura que más se repite en un flujo típico de uso.
 
-```http
-GET /products
+Para poder verificar a simple vista que la caché está funcionando, `findById` deja un `System.out.println` justo antes de ir a la base de datos: si se consulta el mismo ID dos veces, el mensaje solo aparece la primera vez (la segunda responde directo desde caché sin tocar el repository). Es intencional, pensado para que sea fácil de comprobar durante la evaluación.
+
+## Tests
+
+JUnit 5 + Mockito, sobre la capa de servicios:
+
+- `ProductoServiceImplTest`: creación, listado sin filtro, listado filtrando por nombre/precio/stock/categoría, búsqueda por ID (existente e inexistente), actualización (existente e inexistente) y eliminación (existente e inexistente).
+- `CategoriaServiceImplTest`: listado con datos, listado sincronizando cuando la base está vacía, búsqueda por ID (con dato, sincronizando si no existe, y 404 si tampoco aparece luego de sincronizar).
+
+Para ejecutar:
+
+```powershell
+.\gradlew.bat clean test
 ```
 
-Devuelve todos los productos.
+## Requisitos para ejecutar el proyecto
 
-También permite filtrar por un atributo:
+- Java 21
+- Sistema operativo compatible con Java
+- Conexión a Internet, para la integración con la API externa de categorías
 
-```text
-name
-price
-stock
-categoryId
+No hace falta instalar Gradle (el proyecto incluye el **Gradle Wrapper**) ni una base de datos externa (se usa **H2 en memoria**).
+
+## Compilación y ejecución
+
+Desde la raíz del proyecto (Windows):
+
+**Compilar**
+
+```powershell
+.\gradlew.bat build
 ```
 
-### Filtrar por nombre
+Limpiar y recompilar:
+
+```powershell
+.\gradlew.bat clean build
+```
+
+**Ejecutar los tests**
+
+```powershell
+.\gradlew.bat test
+```
+
+**Ejecutar la aplicación**
+
+```powershell
+.\gradlew.bat bootRun
+```
+
+La aplicación queda disponible en:
+
+```
+http://localhost:8080
+```
+
+**Consola H2**
+
+Con la app corriendo:
+
+```
+http://localhost:8080/h2-console
+```
+
+La URL JDBC y las credenciales están en `src/main/resources/application.properties`.
+
+## Información necesaria para probar la API
+
+### Datos de prueba
+
+La app usa H2 en memoria, así que los datos se pierden al detener la aplicación. Se cargan automáticamente al iniciar mediante `src/main/resources/import.sql`, que trae 30 productos de prueba.
+
+### Endpoints — Productos
+
+| Método | Endpoint | Descripción |
+|---|---|---|
+| GET | `/products` | Listar productos (con filtros opcionales) |
+| GET | `/products/{id}` | Obtener un producto por ID |
+| POST | `/products` | Crear un producto |
+| PUT | `/products/{id}` | Actualizar un producto |
+| DELETE | `/products/{id}` | Eliminar un producto |
+
+Filtros (uno por solicitud):
 
 ```http
 GET /products?name=Mouse
-```
-
-### Filtrar por precio
-
-```http
 GET /products?price=25000
-```
-
-### Filtrar por stock
-
-```http
 GET /products?stock=20
-```
-
-### Filtrar por categoría
-
-```http
 GET /products?categoryId=2
 ```
 
-> La implementación actual permite utilizar **un filtro por solicitud**, ya que la consigna solicita búsquedas o filtros por nombre, precio, stock y categoría, pero no exige combinarlos.
-
----
-
-## Obtener producto por ID
-
-```http
-GET /products/{id}
-```
-
-Ejemplo:
-
-```http
-GET /products/1
-```
-
-Si el producto no existe:
-
-```text
-404 Not Found
-```
-
----
-
-## Crear producto
-
-```http
-POST /products
-```
-
-Ejemplo:
+Crear producto:
 
 ```json
+POST /products
 {
   "name": "Mouse inalámbrico",
   "price": 25000,
@@ -328,29 +196,12 @@ Ejemplo:
 }
 ```
 
-Respuesta exitosa:
+Respuesta: `201 Created`.
 
-```text
-201 Created
-```
-
----
-
-## Actualizar producto
-
-```http
-PUT /products/{id}
-```
-
-Ejemplo:
-
-```http
-PUT /products/1
-```
-
-Body:
+Actualizar producto:
 
 ```json
+PUT /products/1
 {
   "name": "Mouse inalámbrico actualizado",
   "price": 28000,
@@ -359,59 +210,22 @@ Body:
 }
 ```
 
-Si el producto no existe:
+Si el producto no existe: `404 Not Found`. Eliminar responde `204 No Content`.
 
-```text
-404 Not Found
-```
+### Endpoints — Categorías
 
----
+| Método | Endpoint | Descripción |
+|---|---|---|
+| GET | `/categories` | Listar categorías (sincronizadas desde escuelajs si no hay datos locales) |
 
-## Eliminar producto
+### Validaciones
 
-```http
-DELETE /products/{id}
-```
+Los requests de producto usan Jakarta Bean Validation:
 
-Ejemplo:
-
-```http
-DELETE /products/1
-```
-
-Respuesta exitosa:
-
-```text
-204 No Content
-```
-
----
-
-# Categorías
-
-## Listar categorías
-
-```http
-GET /categories
-```
-
-Devuelve las categorías disponibles en la aplicación.
-
----
-
-# Validaciones
-
-Los requests de productos utilizan **Jakarta Bean Validation**.
-
-Entre las validaciones implementadas:
-
-* El nombre es obligatorio.
-* El nombre no puede estar vacío.
-* El precio es obligatorio.
-* El precio debe ser válido según las reglas definidas.
-* El stock es obligatorio.
-* El stock debe cumplir la cantidad mínima definida.
-* El ID de categoría es obligatorio.
+- Nombre obligatorio, no puede estar vacío.
+- Precio obligatorio y mayor a 0.
+- Stock obligatorio, mínimo 1.
+- `categoryId` obligatorio.
 
 Ejemplo de request inválido:
 
@@ -424,302 +238,94 @@ Ejemplo de request inválido:
 }
 ```
 
-La API responde:
+Respuesta: `400 Bad Request`.
 
-```text
-400 Bad Request
+### Manejo de errores
+
+Excepciones personalizadas (`ResourceNotFoundException`, `BadRequestException`, `ExternalServiceException`) centralizadas en `GlobalExceptionHandler` (`@RestControllerAdvice`), con una estructura de respuesta común (`ErrorResponse`).
+
+Códigos principales: `400`, `404`, `503`, `500`.
+
+### Flujo recomendado para probar
+
+1. `GET /products` — ver los productos cargados por `import.sql`.
+2. Probar filtros: `GET /products?categoryId=2`, `GET /products?name=Mouse`.
+3. `GET /products/1` — obtener un producto puntual, y repetir la consulta para ver la caché en acción (el segundo llamado no imprime el log de acceso a base de datos).
+4. `POST /products` — crear uno nuevo.
+5. `PUT /products/{id}` — actualizarlo.
+6. `DELETE /products/{id}` — eliminarlo.
+7. `GET /categories` — consultar categorías.
+
+Todo esto se puede hacer directamente desde Swagger UI.
+
+## Arquitectura
+
+```
+Controller
+    ↓
+Service
+    ↓
+Repository
+    ↓
+Model
+    ↓
+H2 Database
 ```
 
-Las validaciones se ejecutan mediante `@Valid` y los errores son manejados por el `GlobalExceptionHandler`.
-
----
-
-# Manejo de errores
-
-La aplicación utiliza excepciones personalizadas para representar diferentes tipos de errores.
-
-Principales excepciones:
-
-* `ResourceNotFoundException`
-* `BadRequestException`
-* `ExternalServiceException`
-
-El `GlobalExceptionHandler`, mediante `@RestControllerAdvice`, centraliza el tratamiento de las excepciones.
-
-Principales códigos utilizados:
-
-```text
-400 Bad Request
-404 Not Found
-503 Service Unavailable
-500 Internal Server Error
+```
+src/
+├── main/
+│   ├── java/com/bricks/productos_api/
+│   │   ├── config/
+│   │   ├── controller/
+│   │   ├── dto/
+│   │   ├── model/
+│   │   ├── exception/
+│   │   ├── mapper/
+│   │   ├── repository/
+│   │   └── service/
+│   └── resources/
+│       ├── application.properties
+│       └── import.sql
+└── test/
+    └── java/
 ```
 
-Las respuestas de error utilizan una estructura común mediante `ErrorResponse`.
-
----
-
-# Caché
-
-Se utiliza **Spring Cache** para almacenar temporalmente determinadas consultas.
-
-Actualmente, la consulta de un producto por ID utiliza:
-
-```java
-@Cacheable(value = "productosCache", key = "#id")
-```
-
-Esto permite que una segunda consulta al mismo producto pueda obtener la información desde la caché sin volver a consultar la base de datos.
-
-Cuando un producto es actualizado o eliminado, la caché correspondiente se invalida mediante `@CacheEvict`.
-
-Esto evita mantener en caché información desactualizada.
-
----
-
-# Tests
-
-El proyecto utiliza:
-
-* **JUnit 5**
-* **Mockito**
-
-Los tests unitarios permiten comprobar la lógica de los servicios sin depender de una base de datos real.
-
-Entre los casos contemplados se encuentran:
-
-* Creación de productos.
-* Consulta por ID.
-* Producto inexistente.
-* Actualización.
-* Eliminación.
-* Filtros.
-* Manejo de excepciones.
-
-Para ejecutar los tests:
-
-### Windows
-
-```bash
-gradlew.bat test
-```
-
-También se puede ejecutar:
-
-```bash
-gradlew.bat clean test
-```
-
----
-
-# Requisitos
-
-Para ejecutar el proyecto se necesita:
-
-* **Java 21**
-* Sistema operativo compatible con Java.
-* Conexión a Internet para utilizar la integración con la API externa.
-
-No es necesario instalar:
-
-* MySQL.
-* PostgreSQL.
-* H2 por separado.
-* Gradle de forma global.
-
-El proyecto incluye el **Gradle Wrapper**.
-
----
-
-# Ejecución
-
-Desde la raíz del proyecto:
-
-### Windows
-
-```bash
-gradlew.bat bootRun
-```
-
-La aplicación se ejecutará en:
-
-```text
-http://localhost:8080
-```
-
-Una vez iniciada, los productos incluidos en `import.sql` estarán disponibles para realizar pruebas.
-
----
-
-# Compilación
-
-Para compilar:
-
-```bash
-gradlew.bat build
-```
-
-Para limpiar y compilar:
-
-```bash
-gradlew.bat clean build
-```
-
-Para ejecutar los tests:
-
-```bash
-gradlew.bat test
-```
-
----
-
-# Consola H2
-
-Mientras la aplicación está ejecutándose, se puede acceder a la consola H2 desde:
-
-```text
-http://localhost:8080/h2-console
-```
-
-La URL JDBC y las credenciales utilizadas se encuentran en:
-
-```text
-src/main/resources/application.properties
-```
-
----
-
-# Flujo recomendado para probar la aplicación
-
-Una vez iniciado el proyecto:
-
-### 1. Consultar los productos
-
-```http
-GET /products
-```
-
-Se pueden observar los productos cargados automáticamente mediante `import.sql`.
-
-### 2. Probar filtros
-
-Por ejemplo:
-
-```http
-GET /products?categoryId=2
-```
-
-o:
-
-```http
-GET /products?name=Mouse
-```
-
-### 3. Obtener un producto
-
-```http
-GET /products/1
-```
-
-### 4. Crear un producto
-
-```http
-POST /products
-```
-
-Con:
-
-```json
-{
-  "name": "Producto de prueba",
-  "price": 50000,
-  "stock": 10,
-  "categoryId": 2
-}
-```
-
-### 5. Actualizarlo
-
-```http
-PUT /products/{id}
-```
-
-### 6. Eliminarlo
-
-```http
-DELETE /products/{id}
-```
-
-### 7. Consultar categorías
-
-```http
-GET /categories
-```
-
-Todos estos pasos pueden realizarse directamente desde Swagger UI.
-
----
-
-# Decisiones técnicas principales
-
-### Arquitectura por capas
-
-Se separaron Controllers, Services, Repositories, Entities, DTOs, Mappers y Exceptions para mantener responsabilidades claras y facilitar el mantenimiento.
-
-### DTOs separados
-
-Se utilizan `ProductoRequest` y `ProductoResponse` en lugar de exponer directamente las entidades.
-
-Esto permite controlar qué información recibe y devuelve la API.
-
-### H2
-
-Se eligió H2 porque el desafío solicita una base de datos en memoria y permite ejecutar el proyecto sin instalar un motor externo.
-
-### Integración externa
-
-Se utiliza `RestClient` para comunicarse con la API pública de categorías.
-
-### Validaciones
-
-Se utilizan anotaciones de Jakarta Bean Validation para validar automáticamente los datos recibidos por la API.
-
-### Manejo global de errores
-
-Se centralizó el tratamiento de excepciones mediante `@RestControllerAdvice`, evitando repetir lógica de manejo de errores en cada Controller.
-
-### Caché
-
-Se utiliza Spring Cache para reducir consultas repetidas a la base de datos en operaciones de consulta por ID.
-
-### Datos iniciales
-
-Se incorporó `import.sql` para que el proyecto pueda ejecutarse inmediatamente con productos de prueba, facilitando la evaluación de los endpoints sin tener que crear manualmente todos los productos.
-
----
-
-# Estado del proyecto
-
-* ✅ API REST de productos.
-* ✅ CRUD de productos.
-* ✅ Consulta de categorías.
-* ✅ Filtros de productos.
-* ✅ Integración con API externa.
-* ✅ Base de datos H2.
-* ✅ Datos iniciales mediante `import.sql`.
-* ✅ DTOs Request / Response.
-* ✅ Mappers.
-* ✅ Validaciones.
-* ✅ Manejo global de excepciones.
-* ✅ Caché.
-* ✅ Swagger / OpenAPI.
-* ✅ Tests unitarios.
-* ✅ Documentación.
-
----
+- **Controller**: recibe las solicitudes HTTP y delega en el Service, sin lógica de negocio.
+- **Service**: lógica de negocio (crear/actualizar productos, verificar categorías, aplicar filtros).
+- **Repository**: acceso a datos con Spring Data JPA.
+- **Model**: entidades `Producto` y `Categoria`, con relación ManyToOne de Producto hacia Categoria.
+- **DTO**: `ProductoRequest`, `ProductoResponse`, `CategoriaResponse`, para no exponer directamente las entidades JPA.
+- **Mapper**: conversión Entity ↔ DTO, separada de la lógica de negocio.
+- **Exception**: excepciones personalizadas y el `GlobalExceptionHandler`.
+
+## Decisiones técnicas principales
+
+- **Arquitectura por capas**: separa Controllers, Services, Repositories, Entities, DTOs, Mappers y Exceptions para mantener responsabilidades claras.
+- **DTOs separados**: evitan exponer directamente las entidades JPA y controlan qué información entra y sale de la API.
+- **H2 en memoria**: el desafío pide una base en memoria; permite ejecutar el proyecto sin instalar un motor externo.
+- **RestClient** para la integración con la API pública de categorías (escuelajs), la indicada en la consigna.
+- **Jakarta Bean Validation** para validar automáticamente los datos recibidos.
+- **`@RestControllerAdvice`** para centralizar el manejo de errores y no repetir lógica en cada Controller.
+- **Spring Cache** sobre la consulta de producto por ID, invalidada con `@CacheEvict` en update/delete.
+- **`import.sql`** con productos de prueba (con más peso en Clothes, Electronics, Furniture y Shoes) para poder probar los endpoints y filtros sin cargar todo a mano.
+
+## Estado del proyecto
+
+- API REST de productos y categorías
+- CRUD completo
+- Filtros de productos
+- Integración con API externa
+- Base de datos H2
+- Datos iniciales (`import.sql`)
+- DTOs Request/Response + Mappers
+- Validaciones
+- Manejo global de excepciones
+- Caché
+- Swagger / OpenAPI
+- Tests unitarios
+- Documentación
 
 ## Autor
 
-**Pedro Serrano**
-
-Desafío técnico de Java — Bricks.
+Pedro Serrano — Desafío técnico de Java, Bricks.

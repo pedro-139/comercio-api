@@ -2,6 +2,7 @@ package com.bricks.productos_api.service.impl;
 
 import com.bricks.productos_api.dto.producto.ProductoRequest;
 import com.bricks.productos_api.dto.producto.ProductoResponse;
+import com.bricks.productos_api.exception.BadRequestException;
 import com.bricks.productos_api.mapper.ProductoMapper;
 import com.bricks.productos_api.model.Categoria;
 import com.bricks.productos_api.model.Producto;
@@ -11,8 +12,6 @@ import com.bricks.productos_api.repository.ProductoRepository;
 import com.bricks.productos_api.service.CategoriaService;
 import com.bricks.productos_api.service.ProductoService;
 
-import jakarta.transaction.Transactional;
-import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -49,8 +48,18 @@ public class ProductoServiceImpl implements ProductoService {
 
 
     @Override
-    // Solo acepta un filtro a la vez.
+// Solo acepta un filtro a la vez.
     public List<ProductoResponse> findAll(String name, Double price, Integer stock, Long categoryId) {
+        int cant = 0;
+        if (name != null) cant++;
+        if (price != null) cant++;
+        if (stock != null) cant++;
+        if (categoryId != null) cant++;
+
+        if (cant > 1) {
+            throw new BadRequestException("Solo se permite un filtro por solicitud (name, price, stock o categoryId)");
+        }
+
         List<Producto> productos;
         if (name != null) {
             productos = productoRepository.findByName(name);

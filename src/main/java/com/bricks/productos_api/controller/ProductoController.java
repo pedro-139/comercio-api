@@ -12,6 +12,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/products")
 public class ProductoController {
@@ -31,7 +33,7 @@ public class ProductoController {
             description = "listado devuelto exitosamente"
     )
     @GetMapping
-    public ResponseEntity<?> getAll(
+    public ResponseEntity<List<ProductoResponse>> getAll(
             @RequestParam(required = false) String name,
             @RequestParam(required = false) Double price,
             @RequestParam(required = false) Integer stock,
