@@ -26,7 +26,7 @@ public class ProductoController {
     // ------------------------------------------
     @Operation(
             summary = "Listado de productos",
-            description = "Devuelve todos los productos."
+            description = "Devuelve todos los productos. Permite el filtrado de 1 atributo a la vez."
     )
     @ApiResponse(
             responseCode = "200",
@@ -69,6 +69,10 @@ public class ProductoController {
     // POST /products
     // ------------------------------------------
 
+    @Operation(
+            summary = "Crear producto",
+            description = "Guarda un producto."
+    )
     @ApiResponses({
             @ApiResponse(
                     responseCode = "201",
@@ -90,6 +94,10 @@ public class ProductoController {
     // PUT /products/{id}
     // ------------------------------------------
     @PutMapping("/{id}")
+    @Operation(
+            summary = "Actualizacion de producto",
+            description = "Actualiza un producto identificado por su ID."
+    )
     @ApiResponses({
             @ApiResponse(
                     responseCode = "200",
@@ -112,7 +120,10 @@ public class ProductoController {
     // ------------------------------------------
     // DELETE /products/{id}
     // ------------------------------------------
-
+    @Operation(
+            summary = "Eliminar producto",
+            description = "Elimina un producto identificado por su ID."
+    )
     @ApiResponses({
             @ApiResponse(
                     responseCode = "204",

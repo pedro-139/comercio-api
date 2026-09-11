@@ -1,10 +1,8 @@
 package com.bricks.productos_api.service.impl;
 
-import com.bricks.productos_api.dto.categoria.CategoriaResponse;
 import com.bricks.productos_api.dto.producto.ProductoRequest;
 import com.bricks.productos_api.dto.producto.ProductoResponse;
 import com.bricks.productos_api.mapper.ProductoMapper;
-import com.bricks.productos_api.mapper.CategoriaMapper;
 import com.bricks.productos_api.entity.Categoria;
 import com.bricks.productos_api.entity.Producto;
 import com.bricks.productos_api.exception.ResourceNotFoundException;
@@ -14,7 +12,6 @@ import com.bricks.productos_api.service.CategoriaService;
 import com.bricks.productos_api.service.ProductoService;
 
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import org.springframework.cache.annotation.Cacheable;
@@ -26,19 +23,18 @@ import java.util.List;
 @Service
 public class ProductoServiceImpl implements ProductoService {
 
-    @Autowired
-    private  ProductoRepository productoRepository;
+    private final ProductoRepository productoRepository;
+    private final CategoriaService categoriaService;
+    private final ProductoMapper productoMapper;
 
-    @Autowired
-    private  CategoriaService categoriaService;
-
-    @Autowired
-    private  ProductoMapper productoMapper;
-
+    public ProductoServiceImpl(ProductoRepository productoRepository,  CategoriaService categoriaService,  ProductoMapper productoMapper) {
+        this.productoRepository = productoRepository;
+        this.categoriaService = categoriaService;
+        this.productoMapper = productoMapper;
+    }
 
     @Override
     @Transactional
-    @CacheEvict( value = "productosCache", key = "'all'") // Borra la caché
     public ProductoResponse create(ProductoRequest productoRequest) {
 
         Categoria categoria = categoriaService.getCategoriaById(productoRequest.getCategoryId());
@@ -51,10 +47,9 @@ public class ProductoServiceImpl implements ProductoService {
 
 
 
-   // @Override
-   /*
+    @Override
     // Solo acepta un filtro a la vez.
-    public List<ProductoDTO> findAll(String name, Double price, Integer stock, Long categoryId) {
+    public List<ProductoResponse> findAll(String name, Double price, Integer stock, Long categoryId) {
         List<Producto> productos;
         if (name != null) {
             productos = productoRepository.findByName(name);
@@ -70,7 +65,6 @@ public class ProductoServiceImpl implements ProductoService {
         return productos.stream().map(productoMapper::toDTO).toList();
     }
 
-*/
 
     @Override
     @Transactional

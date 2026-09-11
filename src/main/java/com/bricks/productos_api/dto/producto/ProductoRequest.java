@@ -13,7 +13,7 @@ public class ProductoRequest {
     private String name;
 
     @NotNull(message = "El precio es obligatorio")
-    @Positive(message = "El precio debe ser mayor o igual a 0")
+    @Positive(message = "El precio debe ser mayor a 0")
     private Double price;
 
     @NotNull(message = "El stock es obligatorio")
